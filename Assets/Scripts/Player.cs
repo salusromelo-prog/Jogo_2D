@@ -3,7 +3,7 @@ using UnityEngine;
 public class Player : MonoBehaviour
 {
 
-    public float speed = 5f;
+    public float speed = 7f;
 
     private Rigidbody2D rb;
 
@@ -21,7 +21,7 @@ public class Player : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Space) && isGraunded)
         {
-            rb.AddForce(new Vector2(0f, 5f), ForceMode2D.Impulse); //Vai aplicar uma força vertical ao Rigidbody2D
+            rb.AddForce(new Vector2(0f, 7f), ForceMode2D.Impulse); //Vai aplicar uma força vertical ao Rigidbody2D
 
 
         }
