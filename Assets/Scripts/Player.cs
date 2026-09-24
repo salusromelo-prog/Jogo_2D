@@ -1,5 +1,5 @@
 using UnityEngine;
-
+using UnityEngine.SceneManagement;
 public class Player : MonoBehaviour
 {
 
@@ -21,7 +21,7 @@ public class Player : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Space) && isGraunded)
         {
-            rb.AddForce(new Vector2(0f, 7f), ForceMode2D.Impulse); //Vai aplicar uma força vertical ao Rigidbody2D
+            rb.AddForce(new Vector2(0f, 5f), ForceMode2D.Impulse); //Vai aplicar uma força vertical ao Rigidbody2D
 
 
         }
@@ -34,6 +34,7 @@ public class Player : MonoBehaviour
         {
             isGraunded = true;
         }
+
     }
 
     private void OnCollisionExit2D(Collision2D collision)
