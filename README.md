@@ -10,3 +10,5 @@ Adicionamos player e chão, aprendemos a commitar, criar branch, push, pull, mer
 17/09 - Criamos alguns scripts para começar o jogo e podermos continuar sozinhos depois, vimos sobre mecânicas básicas de movimentação e física.
 
 22/09 - Arrumamos o pulo do player pois ele pulava infinitamente e tambem vimos sobre mecanicas como linearVelocity e AddForce 
+
+24/09 - Comecei a mudar a estética do jogo com algumas plataformas e espinhos, os espinhos matam o player ao encostar, próximo passo é colocar estética do player e fundo do jogo.
