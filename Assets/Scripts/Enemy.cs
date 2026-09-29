@@ -9,6 +9,9 @@ public class Enemy : MonoBehaviour
     private float limiteEsquerdo;
     private float limiteDireito;
     private int direcao = 1;
+     Animator animator;
+    private SpriteRenderer spriteRenderer;
+
 
     void Start()
     {
@@ -32,6 +35,7 @@ public class Enemy : MonoBehaviour
             direcao = 1;
             Virar();
         }
+        
     }
 
     void Virar()

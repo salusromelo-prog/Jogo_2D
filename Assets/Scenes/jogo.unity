@@ -332,7 +332,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f02dc3b3fab66d24f8ee4a2021bef877, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  bala: {fileID: 5427743832306639650, guid: 10e8c8035b3598f47a110398f54e267d, type: 3}
+  bala: {fileID: 3567283218271158568, guid: f2c1db1368700474c887b65f28c21850, type: 3}
   pontoDeTiro: {fileID: 416650987}
 --- !u!1 &249381356
 GameObject:
@@ -637,6 +637,7 @@ GameObject:
   - component: {fileID: 968010019}
   - component: {fileID: 968010024}
   - component: {fileID: 968010023}
+  - component: {fileID: 968010025}
   m_Layer: 0
   m_Name: Enemy
   m_TagString: Enemy
@@ -705,17 +706,17 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 0}
+  m_Offset: {x: 0.2949195, y: -0.70310163}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 1, y: 1}
+    oldSize: {x: 9.75, y: 15.03}
     newSize: {x: 1, y: 1}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 1, y: 1}
+  m_Size: {x: 5.1288652, y: 11.546412}
   m_EdgeRadius: 0
 --- !u!212 &968010021
 SpriteRenderer:
@@ -761,8 +762,8 @@ SpriteRenderer:
   m_SortingLayerID: -1073509231
   m_SortingLayer: 2
   m_SortingOrder: 0
-  m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
-  m_Color: {r: 1, g: 0, b: 0, a: 1}
+  m_Sprite: {fileID: 6159070221721294246, guid: 0bb4d187a77b29447b80b0e020f1cd32, type: 3}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -781,8 +782,8 @@ Transform:
   m_GameObject: {fileID: 968010018}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 7.66, y: -4.0168, z: 0}
-  m_LocalScale: {x: 0.7137, y: 1.1182735, z: 1}
+  m_LocalPosition: {x: 7.9004, y: -4.2998, z: 0}
+  m_LocalScale: {x: 0.066500545, y: 0.074384645, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 252779490}
@@ -813,6 +814,28 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d95e1e42f9be4fa42ba2a088f4c2b8a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!95 &968010025
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 968010018}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 7add7c22db2a4254e94cda4a875a6e2b, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &983795310
 GameObject:
   m_ObjectHideFlags: 0
@@ -1345,8 +1368,8 @@ Transform:
   m_GameObject: {fileID: 1717759160}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -9.6714, y: -4.1014, z: 0}
-  m_LocalScale: {x: 8.364523, y: 0.8081625, z: 1}
+  m_LocalPosition: {x: -9.7176, y: -4.1014, z: 0}
+  m_LocalScale: {x: 8.271677, y: 0.8081625, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 578607220}
@@ -1736,11 +1759,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8172752334106774117, guid: 8da3f15ab3107934b9e3782458280b2d, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.5325098
+      value: -12.01
       objectReference: {fileID: 0}
     - target: {fileID: 8172752334106774117, guid: 8da3f15ab3107934b9e3782458280b2d, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -4.4411154
+      value: -3.24
       objectReference: {fileID: 0}
     - target: {fileID: 8172752334106774117, guid: 8da3f15ab3107934b9e3782458280b2d, type: 3}
       propertyPath: m_LocalPosition.z
@@ -1793,11 +1816,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8172752334106774117, guid: 8da3f15ab3107934b9e3782458280b2d, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -2.45
+      value: -11.48
       objectReference: {fileID: 0}
     - target: {fileID: 8172752334106774117, guid: 8da3f15ab3107934b9e3782458280b2d, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -4.43
+      value: -4.65
       objectReference: {fileID: 0}
     - target: {fileID: 8172752334106774117, guid: 8da3f15ab3107934b9e3782458280b2d, type: 3}
       propertyPath: m_LocalPosition.z
