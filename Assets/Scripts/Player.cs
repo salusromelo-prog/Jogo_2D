@@ -3,7 +3,7 @@ using UnityEngine.SceneManagement;
 public class Player : MonoBehaviour
 {
 
-    public float speed = 7f;
+    public float speed = 3f;
 
     private Rigidbody2D rb;
 
