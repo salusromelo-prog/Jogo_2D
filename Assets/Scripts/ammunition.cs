@@ -2,8 +2,14 @@ using UnityEngine;
 
 public class Bala : MonoBehaviour
 {
-    public float velocidade = 10f;
+    public float velocidade = 7f;
     public int direcao = 1;
+
+
+    void Start()
+    {
+        Destroy(gameObject, 3f);
+    }
 
     void Update()
     {
@@ -19,5 +25,7 @@ public class Bala : MonoBehaviour
             Destroy(collision.gameObject);
             Destroy(gameObject);
         }
+        
     }
+
 }
