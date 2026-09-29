@@ -12,3 +12,5 @@ Adicionamos player e chão, aprendemos a commitar, criar branch, push, pull, mer
 22/09 - Arrumamos o pulo do player pois ele pulava infinitamente e tambem vimos sobre mecanicas como linearVelocity e AddForce 
 
 24/09 - Comecei a mudar a estética do jogo com algumas plataformas e espinhos, os espinhos matam o player ao encostar, próximo passo é colocar estética do player e fundo do jogo.
+
+29/09 - Continuei a melhorar a estética e funcionalidade do jogo, adicionei animação de movimento, fundo, personagem, coloquei funcionalidades de dano e etc.
