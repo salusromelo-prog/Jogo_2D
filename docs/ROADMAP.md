@@ -10,9 +10,10 @@
 
 ## Trilogia (veja HISTORIA.md)
 - [x] Roteiro das 3 fases
+- [x] Tela inicial ilustrada e tela final
 - [x] Fase 1: Telhados da Vila (mapa, arte, câmera, portão, história)
 - [x] Fase 2: Desfiladeiro Nebuloso (fase que desce: espinhos na parede, altares, tábuas que quebram, névoa e cachoeiras)
-- [ ] Fase 3: Fortaleza e a cela do amigo (final do jogo e tela de vitória)
+- [x] Fase 3: A Fortaleza (chefe, cela do amigo e tela final)
 - [ ] Arte nova de cada fase (hoje é pixel art simples gerada por código)
 
 ## Para refinar (próxima rodada)

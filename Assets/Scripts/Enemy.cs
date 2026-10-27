@@ -11,6 +11,14 @@ public class Enemy : MonoBehaviour
     public float distanciaTiro = 6f;    // distância máxima para ele atirar no player
     public float tempoEntreTiros = 2f;  // tempo de espera entre um tiro e outro
 
+    [Header("Vida")]
+    public int vida = 1;                // quantos tiros ele aguenta
+    public bool ehChefe = false;        // o chefe aparece com barra de vida na tela
+    [HideInInspector] public int vidaMaxima = 1;
+
+    private SpriteRenderer desenho;
+    private Color corOriginal;
+
     private float limiteEsquerdo;
     private float limiteDireito;
     private int direcao = 1;    // 1 = direita, -1 = esquerda
@@ -29,6 +37,43 @@ public class Enemy : MonoBehaviour
 
         jogador = GameObject.FindGameObjectWithTag("Player").transform;
         animator = GetComponent<Animator>();
+
+        vidaMaxima = vida;
+        desenho = GetComponent<SpriteRenderer>();
+        corOriginal = desenho.color;
+    }
+
+
+    // A shuriken chama isto quando acerta o inimigo
+    public void LevarDano()
+    {
+        vida--;
+
+        if (vida <= 0)
+        {
+            GameManager.Tocar("inimigo_morre");
+            GameManager.InimigoDerrotado();
+
+            if (ehChefe)
+            {
+                GameManager.ChefeDerrotado();
+            }
+
+            Destroy(gameObject);
+        }
+        else
+        {
+            // Ainda está vivo: pisca em branco por um instante
+            GameManager.Tocar("dano");
+            desenho.color = Color.white;
+            Invoke("VoltarACor", 0.1f);
+        }
+    }
+
+
+    void VoltarACor()
+    {
+        desenho.color = corOriginal;
     }
 
 

@@ -36,10 +36,12 @@ cenário.
 - **Inimigos:** guardas que atiram nas pontes e nos ledges.
 - **Final:** do outro lado do portão, uma trilha sobe até a fortaleza.
 
-### Fase 3: Fortaleza (desafio final)
-- **Cenário:** muralhas, torres, pátio interno, corredores de pedra.
-- **Mistura tudo:** pulos longos, poços de parede, espinhos e vários inimigos.
-- **Final:** a cela. O ninja encontra o amigo, abre a cela e aparece a tela de vitória.
+### Fase 3: A Fortaleza (desafio final) - pronta
+- **Cenário:** a fortaleza do senhor da guarda, à noite e com tempestade: pátio, muralha, torres, salão e masmorra, com
+  braseiros, estandartes e brasas.
+- **Mistura tudo:** pulos, chaminés de pedra, espinhos nas paredes, tábuas que quebram, guardas e altares.
+- **Chefe:** o capitão da guarda, na arena antes da cela. Aguenta 6 tiros.
+- **Final:** a cela. O ninja derrota o capitão, abre as grades e reencontra o amigo; aparece a tela final.
 
 ## Sistema do jogo (como as fases funcionam)
 

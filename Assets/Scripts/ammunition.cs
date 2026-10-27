@@ -20,12 +20,20 @@ public class Bala : MonoBehaviour
 
     void OnTriggerEnter2D(Collider2D collision)
     {
-        // Se acertar um inimigo, destrói o inimigo e a bala
+        // Se acertar um inimigo, ele leva dano (o inimigo cuida do resto: som, vida, etc.)
         if (collision.CompareTag("Enemy"))
         {
-            GameManager.Tocar("inimigo_morre");
-            GameManager.InimigoDerrotado();
-            Destroy(collision.gameObject);
+            Enemy inimigo = collision.GetComponent<Enemy>();
+
+            if (inimigo != null)
+            {
+                inimigo.LevarDano();
+            }
+            else
+            {
+                Destroy(collision.gameObject);
+            }
+
             Destroy(gameObject);
         }
     }

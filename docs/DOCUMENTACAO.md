@@ -8,7 +8,7 @@
 | [ARQUITETURA.md](ARQUITETURA.md) | Como as peças se conectam, tags, física, animação, problemas conhecidos |
 | [ROADMAP.md](ROADMAP.md) | Próximos passos priorizados |
 
-> Atualização: o jogo agora tem uma trilogia de fases (veja [HISTORIA.md](HISTORIA.md)). As Fases 1 e 2 estão prontas.
+> Atualização: o jogo agora tem uma trilogia de fases (veja [HISTORIA.md](HISTORIA.md)). As três fases estão prontas, com tela inicial e tela final.
 > As fases são montadas por um arquivo de texto. A seção "Como editar o mapa" explica como.
 
 ## Visão geral
@@ -20,7 +20,7 @@ em Unity.
 - **Engine:** Unity 6000.1.4f1 (Unity 6)
 - **Render pipeline:** URP 17.1 com Renderer 2D
 - **Entrada:** Input System 1.14 instalado, projeto configurado com `activeInputHandler: 2` (aceita os dois sistemas). Os scripts usam a API antiga (`Input.GetAxis`, `Input.GetKeyDown`).
-- **Cenas:** `Fase1.unity` (índice 0) e `Fase2.unity` (índice 1). A Fase 3 será uma nova cena na lista do Build Settings.
+- **Cenas:** `Fase1.unity` (índice 0), `Fase2.unity` (índice 1) e `Fase3.unity` (índice 2), todas na lista do Build Settings.
   Ao tocar no portão, o jogo vai para a próxima cena da lista.
 
 ## Como rodar
@@ -29,6 +29,16 @@ em Unity.
 2. Clone o repositório e adicione a pasta no Unity Hub (Add project from disk).
 3. Abra `Assets/Scenes/Fase1.unity` e aperte Play.
 
+## Tela inicial e tela final
+
+Desenhadas pelo `GameManager`. As ilustrações (pixel art feita com a arte do próprio ninja) ficam em
+`Assets/Resources/Arte/tela_inicial.png` e `tela_final.png`: [tela_inicial.png](tela_inicial.png) e
+[tela_final.png](tela_final.png).
+
+- **Tela inicial:** ilustração com o ninja contra a lua, nome do jogo, subtítulo e botões **Jogar**, **Como jogar** e
+  **Sair** (Enter também começa). O nome do jogo e o subtítulo ficam nos campos `Nome Do Jogo` e `Subtitulo` do objeto
+  `GameManager`.
+- **Tela final:** aparece ao abrir a cela. Mostra o ninja e o amigo lado a lado ao amanhecer, e o botão volta ao menu.
 ## Interface (HUD)
 
 Desenhada pelo `GameManager` (`OnGUI`), em escala com o tamanho da tela. Ícones em `Assets/Resources/Arte/ui_*.png`.
@@ -57,7 +67,9 @@ Uma imagem do mapa inteiro está em [fase1_mapa.png](fase1_mapa.png).
 | `E` | inimigo |
 | `G` | portão do fim da fase |
 | `L` | lanterna (só enfeite) |
-| `r` `e` `v` | seta brilhante que mostra o caminho: `r` para a direita, `e` para a esquerda, `v` para baixo |
+| `r` `e` `v` `u` | seta brilhante que mostra o caminho: `r` direita, `e` esquerda, `v` baixo, `u` cima |
+| `B` | chefe: um inimigo maior, dourado, com 6 de vida e barra de vida na tela |
+| `A` | cela do amigo (3 x 3 blocos). Só abre quando o chefe for derrotado e termina o jogo |
 | `.` | vazio |
 
 As linhas que começam com `@` não são mapa: `@titulo`, `@historia` e `@fim` são os textos que aparecem nas telas, `@dica` é uma frase curta com o objetivo da fase (aparece na tela da história e no HUD) e `@camera tamanho alturaExtra alturaExtraQueda` ajusta a câmera da fase (tamanho maior = mais zoom out; alturaExtra negativa = a câmera fica abaixo do player e mostra mais o que vem embaixo; o padrão é 5, 2 e -1,5). A Fase 2 usa `@camera 7 -2 -4.5`, e
@@ -82,6 +94,21 @@ Mapa: `Assets/Resources/Fases/fase2.txt` (76 x 68 blocos, tema `desfiladeiro`). 
   altares) e que o poço dos espinhos de parede é possível de atravessar. Isso não substitui jogar: ajuste vãos e
   espinhos no mapa se achar difícil ou fácil demais.
 
+### Fase 3: A Fortaleza (fase final)
+Mapa: `Assets/Resources/Fases/fase3.txt` (176 x 48 blocos, tema `fortaleza`). Imagens: [fase3_mapa.png](fase3_mapa.png),
+[fase3_visual.png](fase3_visual.png) e [fase3_arena.png](fase3_arena.png).
+- **Visual:** noite de tempestade, pedra azulada de castelo, colunas com estandartes verdes, torres ao longe, braseiros
+  com fogo tremendo e brasas flutuando. Os `@camera 6.5 0 -3` mostram mais da fase.
+- **Pátio:** ponte quebrada de tábuas, um guarda e espinhos, e a primeira torre (chaminé de pedra para subir).
+- **Muralha e torre alta:** corredor no alto com um guarda e tábuas que quebram, altar 1, e uma chaminé de pedra
+  com espinhos nas paredes (em lados alternados).
+- **Salão superior:** guardas, espinhos, altar 2 e o poço que desce até a masmorra, com espinhos nas paredes.
+- **Masmorra e arena:** corredor com guarda, espinhos e altar 3, uma ponte de tábuas e a arena do **capitão da guarda**
+  (chefe com 6 de vida, que atira mais rápido e patrulha). Dá para desviar pelas plataformas da arena.
+- **Cela:** no fim da arena. Se você tentar abrir antes de derrotar o chefe, aparece o aviso "A cela está trancada".
+  Ao abrir, as grades somem e o jogo mostra a tela final.
+- **Mecânicas:** só as que você já conhece (andar, pular, pulo de parede, atirar), mais o chefe com vida. Uma busca
+  automática com simulação de física confirmou que existe caminho do início até a cela, passando pelos três altares.
 Para criar uma nova fase: copie `fase1.txt` para `fase2.txt`, mude o desenho, duplique a cena `Fase1`, troque o
 campo "Arquivo Mapa" do objeto `LevelBuilder` para `Fases/fase2` e coloque a cena nova no Build Settings.
 
@@ -142,6 +169,8 @@ Assets/
 | `Checkpoint.cs` | `Checkpoint` | Altar (letra `C`) | Acende ao Player passar e guarda o ponto de retorno no GameManager |
 | `PlataformaQuebra.cs` | `PlataformaQuebra` | Tábuas (letra `Q`) | Treme quando o Player pisa, some e volta depois de um tempo |
 | `Seta.cs` | `Seta` | Setas (letras `r` `e` `v`) | Balança na direção que aponta e pisca, para guiar o jogador |
+| `Cela.cs` | `Cela` | Cela (letra `A`) | Se o chefe ainda vive, avisa que está trancada. Senão, abre as grades e termina o jogo |
+| `PiscarLuz.cs` | `PiscarLuz` | Braseiros da fortaleza | Faz o fogo tremer |
 | `Vagalumes.cs` | `Vagalumes` | Objeto criado pelo LevelBuilder | Luzinhas flutuando ao redor da câmera (vaga-lumes ou poeirinhas de névoa) |
 
 ### Parâmetros expostos no Inspector
@@ -149,7 +178,7 @@ Assets/
 - `Player`: `speed` (6), `jumpForce` (10), `maxFallSpeed` (14), `wallSlideSpeed` (2), `wallJumpX` (7), `wallJumpTime` (0,2), `checkDistance` (0,1)
 - `PlayerTiro`: `bala`, `pontoDeTiro`
 - `Bala`: `velocidade` (7), `direcao`
-- `Enemy`: `velocidade`, `distancia`, `bala`, `pontoTiro`, `distanciaTiro`, `tempoEntreTiros`
+- `Enemy`: `vida` (quantos tiros aguenta), `ehChefe`, `velocidade`, `distancia`, `bala`, `pontoTiro`, `distanciaTiro`, `tempoEntreTiros`
 - `GameManager`: `vidasIniciais` (3), `tempoInvencivel` (1,5), `limiteQueda` (-15), `volumeEfeitos` (0,3), `volumeMusica` (0,12)
 
 ## Tags e layers

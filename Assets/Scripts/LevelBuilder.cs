@@ -207,6 +207,14 @@ public class LevelBuilder : MonoBehaviour
             CriarCamada("PilaresMeio", "bg_pilares_meio", -85, 0.8f, 0f, true, 0f, "Background", 0.65f, alturaFundo);
             CriarCamada("PilaresPerto", "bg_pilares_perto", -80, 0.65f, 0f, true, 0f, "Background", 0.5f, alturaFundo);
         }
+        else if (tema == "fortaleza")
+        {
+            // Torres ao longe (afundam quando você sobe) e colunas de pedra com estandartes
+            float alturaFundo = 200f;
+            CriarCamada("Torres", "bg_torres", -90, 0.9f, -2.5f, true, 0f, "Background", 0.85f);
+            CriarCamada("ColunasLonge", "bg_colunas_longe", -85, 0.8f, 0f, true, 0f, "Background", 0.65f, alturaFundo);
+            CriarCamada("ColunasPerto", "bg_colunas_perto", -80, 0.65f, 0f, true, 0f, "Background", 0.5f, alturaFundo);
+        }
         else if (tema == "floresta")
         {
             CriarCamada("Montanhas", "bg_montanha", -90, 0.92f, -0.5f, true, 0f, "Background");
@@ -365,9 +373,27 @@ public class LevelBuilder : MonoBehaviour
                 {
                     CriarSeta(x, y, "seta_baixo", Vector2.down);
                 }
+                else if (letra == 'u')
+                {
+                    CriarSeta(x, y, "seta_cima", Vector2.up);
+                }
                 else if (letra == 'L')
                 {
-                    NovoSprite("Lanterna", "lanterna", x + 0.5f, y + 1f, -8);
+                    GameObject luz = NovoSprite("Lanterna", "lanterna", x + 0.5f, y + 1f, -8);
+
+                    // Na fortaleza as luzes são braseiros: o fogo treme
+                    if (tema == "fortaleza")
+                    {
+                        luz.AddComponent<PiscarLuz>();
+                    }
+                }
+                else if (letra == 'B')
+                {
+                    CriarChefe(x, y);
+                }
+                else if (letra == 'A')
+                {
+                    CriarCela(x, y);
                 }
                 else if (letra == 'C')
                 {
@@ -442,7 +468,7 @@ public class LevelBuilder : MonoBehaviour
     }
 
 
-    // Seta brilhante que mostra para onde ir (r = direita, e = esquerda, v = para baixo)
+    // Seta brilhante que mostra para onde ir (r = direita, e = esquerda, v = para baixo, u = para cima)
     void CriarSeta(int x, int y, string imagem, Vector2 direcao)
     {
         GameObject seta = NovoSprite("Seta", imagem, x + 0.5f, y + 0.5f, -3);
@@ -527,6 +553,67 @@ public class LevelBuilder : MonoBehaviour
     }
 
 
+    // O chefe é um inimigo maior, dourado, com mais vida e que atira mais rápido
+    void CriarChefe(int x, int y)
+    {
+        GameObject chefe = Instantiate(inimigoModelo, raiz);
+        chefe.name = "Chefe";
+        chefe.transform.localScale *= 1.7f;
+        chefe.GetComponent<SpriteRenderer>().color = new Color(1f, 0.78f, 0.45f);   // tom dourado
+
+        Enemy script = chefe.GetComponent<Enemy>();
+        script.ehChefe = true;
+        script.vida = 6;
+        script.velocidade = 1.5f;
+        script.distancia = 5f;
+        script.distanciaTiro = 12f;
+        script.tempoEntreTiros = 1.2f;
+
+        chefe.SetActive(true);
+        ColocarNoChao(chefe, x + 0.5f, y);
+
+        if (gm != null)
+        {
+            gm.RegistrarInimigo();
+            gm.RegistrarChefe(script);
+        }
+    }
+
+
+    // Cela com o amigo preso (3 x 3 blocos). Só abre quando o chefe cai.
+    void CriarCela(int x, int y)
+    {
+        GameObject cela = new GameObject("Cela");
+        cela.transform.parent = raiz;
+        cela.transform.position = new Vector3(x + 0.5f, y + 1.5f, 0f);
+
+        // Fundo de pedra com o vão escuro
+        GameObject fundo = NovoSprite("CelaFundo", "cela_fundo", x + 0.5f, y + 1.5f, -6);
+        fundo.transform.parent = cela.transform;
+
+        // O amigo, de pé dentro da cela
+        GameObject amigo = NovoSprite("Amigo", "amigo", x + 0.5f, y + 0.8f, -5);
+        amigo.transform.localScale = new Vector3(0.62f, 0.62f, 1f);
+        amigo.transform.parent = cela.transform;
+
+        // As grades, na frente do amigo
+        GameObject grade = NovoSprite("Grade", "cela_grade", x + 0.5f, y + 1.5f, -4);
+        grade.transform.parent = cela.transform;
+
+        BoxCollider2D colisor = cela.AddComponent<BoxCollider2D>();
+        colisor.isTrigger = true;
+        colisor.size = new Vector2(2.6f, 2.8f);
+
+        Cela script = cela.AddComponent<Cela>();
+        script.grade = grade;
+
+        if (gm != null)
+        {
+            gm.RegistrarPortao(cela.transform.position);    // a seta e a distância do HUD apontam para a cela
+        }
+    }
+
+
     void ColocarPlayer(int x, int y)
     {
         GameObject player = GameObject.FindGameObjectWithTag("Player");
@@ -591,6 +678,15 @@ public class LevelBuilder : MonoBehaviour
             script.tamanhoMin = 1.2f;
             script.tamanhoMax = 3f;
             script.intensidade = 0.35f;
+        }
+        else if (tema == "fortaleza")
+        {
+            // Brasas subindo dos braseiros
+            script.sprite = Carregar("brasa");
+            script.quantidade = 28;
+            script.tamanhoMin = 0.5f;
+            script.tamanhoMax = 1.2f;
+            script.intensidade = 0.9f;
         }
         else
         {

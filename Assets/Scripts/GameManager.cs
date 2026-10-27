@@ -5,6 +5,10 @@ using UnityEngine.SceneManagement;
 // Fica em um objeto vazio chamado GameManager em cada fase.
 public class GameManager : MonoBehaviour
 {
+    // Textos da tela inicial (mude aqui o nome do jogo)
+    public string nomeDoJogo = "Sombra do Ninja";
+    public string subtitulo = "A jornada para libertar um amigo";
+
     public int vidasIniciais = 3;        // quantas vidas o player começa
     public float tempoInvencivel = 1.5f; // tempo sem levar dano depois de perder uma vida
     public float limiteQueda = -15f;     // se o player cair abaixo dessa altura, perde uma vida
@@ -47,12 +51,24 @@ public class GameManager : MonoBehaviour
     float distanciaInicial = 1f;        // distância do início da fase até o portão
     float tempoJogando = 0f;            // tempo jogado nesta fase (para a dica dos controles)
 
+    Enemy chefe;                        // o chefe da fase (se tiver)
+    bool temChefe = false;
+    bool chefeMorto = false;
+
+    string avisoTexto = "";             // mensagem temporária no meio da tela
+    float avisoTimer = 0f;
+
     // Ícones do HUD (Assets/Resources/Arte)
     Texture2D iconeCoracao;
     Texture2D iconeCoracaoVazio;
     Texture2D iconeAltar;
     Texture2D iconeInimigo;
     Texture2D iconeSeta;
+
+    // Ilustrações das telas
+    Texture2D telaInicial;
+    Texture2D telaFinal;
+    bool mostrandoAjuda = false;        // painel "Como jogar" aberto no menu
 
 
     void Awake()
@@ -104,6 +120,10 @@ public class GameManager : MonoBehaviour
         iconeInimigo = Resources.Load<Texture2D>("Arte/ui_inimigo");
         iconeSeta = Resources.Load<Texture2D>("Arte/seta_direita");
 
+        // Ilustrações da tela inicial e da tela final
+        telaInicial = Resources.Load<Texture2D>("Arte/tela_inicial");
+        telaFinal = Resources.Load<Texture2D>("Arte/tela_final");
+
         // Música de fundo (arquivo em Assets/Resources/Sons/musica)
         AudioClip clipMusica = Resources.Load<AudioClip>("Sons/musica");
         if (clipMusica != null)
@@ -144,6 +164,39 @@ public class GameManager : MonoBehaviour
         temPortao = true;
     }
 
+    // O LevelBuilder avisa quando existe um chefe na fase (ele aparece com barra de vida)
+    public void RegistrarChefe(Enemy inimigo)
+    {
+        chefe = inimigo;
+        temChefe = true;
+    }
+
+    // A cela pergunta se o chefe ainda está vivo
+    public static bool ChefeVivo()
+    {
+        return instancia != null && instancia.temChefe && !instancia.chefeMorto;
+    }
+
+    // O chefe chama quando morre
+    public static void ChefeDerrotado()
+    {
+        if (instancia != null)
+        {
+            instancia.chefeMorto = true;
+            MostrarAviso("O capitão caiu! A cela está livre.");
+        }
+    }
+
+    // Mostra uma mensagem no meio da tela por alguns segundos
+    public static void MostrarAviso(string texto)
+    {
+        if (instancia != null)
+        {
+            instancia.avisoTexto = texto;
+            instancia.avisoTimer = 3.5f;
+        }
+    }
+
     // A shuriken chama quando acerta um inimigo
     public static void InimigoDerrotado()
     {
@@ -170,7 +223,14 @@ public class GameManager : MonoBehaviour
         {
             if (estado == Estado.Menu)
             {
-                IrParaHistoria();
+                if (mostrandoAjuda)
+                {
+                    mostrandoAjuda = false;     // Enter fecha o "Como jogar"
+                }
+                else
+                {
+                    IrParaHistoria();
+                }
             }
             else if (estado == Estado.Intro)
             {
@@ -192,6 +252,11 @@ public class GameManager : MonoBehaviour
         }
 
         tempoJogando += Time.deltaTime;
+
+        if (avisoTimer > 0)
+        {
+            avisoTimer -= Time.deltaTime;
+        }
 
         // Depois de perder vida o player fica piscando e sem levar dano por um tempo
         if (invencivelTimer > 0)
@@ -346,8 +411,9 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            // Acabaram as fases: volta ao começo
+            // Acabaram as fases: volta ao menu inicial
             vidas = vidasIniciais;
+            jaComecou = false;
             SceneManager.LoadScene(0);
         }
     }
@@ -361,88 +427,27 @@ public class GameManager : MonoBehaviour
     }
 
 
-    // Desenha os menus, as vidas e as telas (OnGUI é a forma mais simples de fazer tela)
+    // Desenha os menus, as telas e o HUD (OnGUI é a forma mais simples de fazer tela)
     void OnGUI()
     {
         float largura = Screen.width;
         float altura = Screen.height;
 
-        // Estilos: tamanho das letras depende do tamanho da tela
-        GUIStyle titulo = new GUIStyle(GUI.skin.label);
-        titulo.fontSize = (int)(altura / 10);
-        titulo.alignment = TextAnchor.MiddleCenter;
-        titulo.wordWrap = true;
-        titulo.normal.textColor = Color.white;
-
-        GUIStyle texto = new GUIStyle(GUI.skin.label);
-        texto.fontSize = (int)(altura / 28);
-        texto.alignment = TextAnchor.UpperCenter;
-        texto.wordWrap = true;
-        texto.normal.textColor = new Color(0.9f, 0.85f, 0.8f);
-
-        GUIStyle botao = new GUIStyle(GUI.skin.button);
-        botao.fontSize = (int)(altura / 20);
-
-        Rect areaTitulo = new Rect(largura * 0.1f, altura * 0.12f, largura * 0.8f, altura * 0.2f);
-        Rect areaTexto = new Rect(largura * 0.15f, altura * 0.36f, largura * 0.7f, altura * 0.3f);
-        Rect areaBotao = new Rect(largura * 0.35f, altura * 0.72f, largura * 0.3f, altura * 0.12f);
-
         if (estado == Estado.Menu)
         {
-            EscurecerTela(largura, altura);
-
-            GUI.Label(areaTitulo, "Jogo 2D", titulo);
-            GUI.Label(areaTexto,
-                "A / D = andar\nEspaço = pular (também na parede)\nF = atirar\nEnter = continuar", texto);
-
-            if (GUI.Button(areaBotao, "Jogar", botao))
-            {
-                IrParaHistoria();
-            }
+            DesenharMenu(largura, altura);
         }
         else if (estado == Estado.Intro)
         {
-            EscurecerTela(largura, altura);
-
-            GUI.Label(areaTitulo, tituloFase, titulo);
-
-            // Objetivo da fase em destaque, logo abaixo do título
-            GUIStyle destaque = new GUIStyle(texto);
-            destaque.fontStyle = FontStyle.Bold;
-            destaque.normal.textColor = new Color(0.65f, 1f, 0.85f);
-            GUI.Label(new Rect(largura * 0.1f, altura * 0.30f, largura * 0.8f, altura * 0.07f), dicaFase, destaque);
-
-            GUI.Label(areaTexto, historiaFase, texto);
-
-            if (GUI.Button(areaBotao, "Começar", botao))
-            {
-                ComecarFase();
-            }
+            DesenharIntro(largura, altura);
         }
         else if (estado == Estado.GameOver)
         {
-            EscurecerTela(largura, altura);
-
-            GUI.Label(areaTitulo, "Game Over", titulo);
-
-            if (GUI.Button(areaBotao, "Jogar de novo", botao))
-            {
-                Reiniciar();
-            }
+            DesenharGameOver(largura, altura);
         }
         else if (estado == Estado.FimDeFase)
         {
-            EscurecerTela(largura, altura);
-
-            GUI.Label(areaTitulo, "Fase completa!", titulo);
-            GUI.Label(areaTexto, textoFim, texto);
-
-            string nomeBotao = TemProximaFase() ? "Próxima fase" : "Voltar ao início";
-
-            if (GUI.Button(areaBotao, nomeBotao, botao))
-            {
-                ProximaFase();
-            }
+            DesenharFimDeFase(largura, altura);
         }
         else
         {
@@ -450,7 +455,311 @@ public class GameManager : MonoBehaviour
             DesenharHud(largura, altura);
             DesenharSetaDoPortao(largura, altura);
             DesenharDicaDosControles(largura, altura);
+            DesenharChefeEAviso(largura, altura);
         }
+    }
+
+
+    // Barra de vida do chefe (quando o player está perto) e mensagens no meio da tela
+    void DesenharChefeEAviso(float largura, float altura)
+    {
+        float u = altura / 400f;
+
+        // Barra de vida do chefe, embaixo da tela
+        if (temChefe && chefe != null && Vector2.Distance(jogador.position, chefe.transform.position) < 18f)
+        {
+            float larguraBarra = Mathf.Min(largura * 0.5f, 260f * u);
+            Rect area = new Rect(largura / 2f - larguraBarra / 2f, altura - 34f * u, larguraBarra, 22f * u);
+            Painel(area);
+
+            GUIStyle nome = new GUIStyle(GUI.skin.label);
+            nome.fontSize = (int)(6.5f * u);
+            nome.fontStyle = FontStyle.Bold;
+            nome.alignment = TextAnchor.UpperCenter;
+            nome.normal.textColor = new Color(1f, 0.9f, 0.7f);
+            GUI.Label(new Rect(area.x, area.y + 1f * u, area.width, 9f * u), "Capitão da Guarda", nome);
+
+            float margem = 4f * u;
+            float vidaRelativa = Mathf.Clamp01((float)chefe.vida / Mathf.Max(1, chefe.vidaMaxima));
+            Rect barra = new Rect(area.x + margem, area.yMax - 9f * u, area.width - margem * 2f, 5f * u);
+
+            GUI.color = new Color(0.18f, 0.05f, 0.06f, 0.95f);
+            GUI.DrawTexture(barra, Texture2D.whiteTexture);
+            GUI.color = new Color(0.9f, 0.25f, 0.2f, 1f);
+            GUI.DrawTexture(new Rect(barra.x, barra.y, barra.width * vidaRelativa, barra.height), Texture2D.whiteTexture);
+            GUI.color = Color.white;
+        }
+
+        // Mensagem temporária (como "a cela está trancada")
+        if (avisoTimer > 0)
+        {
+            float transparencia = Mathf.Clamp01(avisoTimer / 0.6f);
+            Rect aviso = new Rect(largura * 0.2f, altura * 0.28f, largura * 0.6f, 26f * u);
+
+            GUI.color = new Color(1f, 1f, 1f, transparencia);
+            Painel(aviso);
+
+            GUIStyle texto = new GUIStyle(GUI.skin.label);
+            texto.fontSize = (int)(8f * u);
+            texto.fontStyle = FontStyle.Bold;
+            texto.alignment = TextAnchor.MiddleCenter;
+            texto.normal.textColor = new Color(1f, 0.95f, 0.8f, transparencia);
+            GUI.Label(aviso, avisoTexto, texto);
+            GUI.color = Color.white;
+        }
+    }
+
+
+    // ---------------------------------------------------------------- telas
+
+    // Tela inicial: ilustração, nome do jogo e botões
+    void DesenharMenu(float largura, float altura)
+    {
+        float u = altura / 400f;
+
+        // Ilustração (preenche a tela inteira)
+        if (telaInicial != null)
+        {
+            GUI.DrawTexture(new Rect(0, 0, largura, altura), telaInicial, ScaleMode.ScaleAndCrop);
+        }
+        else
+        {
+            EscurecerTela(largura, altura);
+        }
+
+        // Nome do jogo e subtítulo
+        Rect areaTitulo = new Rect(largura * 0.05f, altura * 0.07f, largura * 0.62f, altura * 0.22f);
+        TextoComContorno(areaTitulo, nomeDoJogo.ToUpper(), (int)(34f * u), TextAnchor.MiddleLeft,
+            new Color(0.94f, 0.97f, 0.92f), FontStyle.Bold, 2f * u);
+
+        Rect areaSub = new Rect(largura * 0.055f, altura * 0.29f, largura * 0.6f, altura * 0.07f);
+        TextoComContorno(areaSub, subtitulo, (int)(10f * u), TextAnchor.MiddleLeft,
+            new Color(0.65f, 1f, 0.85f), FontStyle.Italic, 1f * u);
+
+        if (mostrandoAjuda)
+        {
+            DesenharAjuda(largura, altura);
+            return;
+        }
+
+        // Botões
+        float bx = largura * 0.06f;
+        float bw = largura * 0.22f;
+        float bh = altura * 0.085f;
+
+        if (Botao(new Rect(bx, altura * 0.50f, bw, bh), "Jogar", u, true))
+        {
+            IrParaHistoria();
+        }
+
+        if (Botao(new Rect(bx, altura * 0.61f, bw, bh), "Como jogar", u, false))
+        {
+            mostrandoAjuda = true;
+        }
+
+        if (Botao(new Rect(bx, altura * 0.72f, bw, bh), "Sair", u, false))
+        {
+            SairDoJogo();
+        }
+
+        // "Pressione ENTER" piscando
+        float pisca = 0.55f + 0.45f * Mathf.Sin(Time.unscaledTime * 3f);
+        TextoComContorno(new Rect(bx, altura * 0.86f, bw * 1.6f, altura * 0.06f), "Pressione ENTER para jogar",
+            (int)(7f * u), TextAnchor.MiddleLeft, new Color(1f, 1f, 1f, pisca), FontStyle.Normal, 1f * u);
+    }
+
+
+    // Painel "Como jogar", aberto pelo menu
+    void DesenharAjuda(float largura, float altura)
+    {
+        float u = altura / 400f;
+
+        Rect painel = new Rect(largura * 0.06f, altura * 0.42f, largura * 0.5f, altura * 0.5f);
+        Painel(painel);
+
+        GUIStyle linha = new GUIStyle(GUI.skin.label);
+        linha.fontSize = (int)(8f * u);
+        linha.wordWrap = true;
+        linha.alignment = TextAnchor.UpperLeft;
+        linha.normal.textColor = Color.white;
+
+        string texto =
+            "A / D  ou  setas      andar\n" +
+            "ESPAÇO      pular (junto de uma parede: pulo de parede)\n" +
+            "Segurar contra a parede      deslizar devagar\n" +
+            "F      atirar shuriken\n\n" +
+            "Acenda os altares de jade para guardar seu progresso.\n" +
+            "Cuidado com espinhos, tábuas que quebram e guardas.";
+
+        GUI.Label(new Rect(painel.x + 8f * u, painel.y + 6f * u, painel.width - 16f * u, painel.height - 30f * u), texto, linha);
+
+        if (Botao(new Rect(painel.x + 8f * u, painel.yMax - 26f * u, 70f * u, 20f * u), "Voltar", u, false))
+        {
+            mostrandoAjuda = false;
+        }
+    }
+
+
+    // Cartão da história, antes de cada fase
+    void DesenharIntro(float largura, float altura)
+    {
+        float u = altura / 400f;
+        EscurecerTela(largura, altura);
+
+        Rect areaTitulo = new Rect(largura * 0.1f, altura * 0.1f, largura * 0.8f, altura * 0.18f);
+        TextoComContorno(areaTitulo, tituloFase, (int)(26f * u), TextAnchor.MiddleCenter,
+            new Color(0.94f, 0.97f, 0.92f), FontStyle.Bold, 2f * u);
+
+        // Objetivo da fase, em destaque
+        Rect areaDica = new Rect(largura * 0.1f, altura * 0.28f, largura * 0.8f, altura * 0.07f);
+        TextoComContorno(areaDica, dicaFase, (int)(9f * u), TextAnchor.MiddleCenter,
+            new Color(0.65f, 1f, 0.85f), FontStyle.Bold, 1f * u);
+
+        // História
+        Rect painelTexto = new Rect(largura * 0.15f, altura * 0.38f, largura * 0.7f, altura * 0.34f);
+        Painel(painelTexto);
+
+        GUIStyle texto = new GUIStyle(GUI.skin.label);
+        texto.fontSize = (int)(8f * u);
+        texto.alignment = TextAnchor.UpperCenter;
+        texto.wordWrap = true;
+        texto.normal.textColor = new Color(0.92f, 0.9f, 0.86f);
+        GUI.Label(new Rect(painelTexto.x + 8f * u, painelTexto.y + 6f * u, painelTexto.width - 16f * u, painelTexto.height - 12f * u), historiaFase, texto);
+
+        if (Botao(new Rect(largura * 0.38f, altura * 0.78f, largura * 0.24f, altura * 0.09f), "Começar", u, true))
+        {
+            ComecarFase();
+        }
+    }
+
+
+    void DesenharGameOver(float largura, float altura)
+    {
+        float u = altura / 400f;
+        EscurecerTela(largura, altura);
+
+        TextoComContorno(new Rect(largura * 0.1f, altura * 0.2f, largura * 0.8f, altura * 0.22f), "Game Over", (int)(40f * u),
+            TextAnchor.MiddleCenter, new Color(0.94f, 0.97f, 0.92f), FontStyle.Bold, 2f * u);
+
+        if (Botao(new Rect(largura * 0.37f, altura * 0.55f, largura * 0.26f, altura * 0.09f), "Jogar de novo", u, true))
+        {
+            Reiniciar();
+        }
+    }
+
+
+    // Fim de fase. No fim do jogo, aparece a ilustração final com o ninja e o amigo.
+    void DesenharFimDeFase(float largura, float altura)
+    {
+        float u = altura / 400f;
+        bool fimDoJogo = !TemProximaFase();
+
+        if (fimDoJogo && telaFinal != null)
+        {
+            GUI.DrawTexture(new Rect(0, 0, largura, altura), telaFinal, ScaleMode.ScaleAndCrop);
+
+            // Faixa escura embaixo para o texto ficar legível
+            GUI.color = new Color(0.02f, 0.05f, 0.1f, 0.78f);
+            GUI.DrawTexture(new Rect(0, altura * 0.62f, largura, altura * 0.38f), Texture2D.whiteTexture);
+            GUI.color = Color.white;
+        }
+        else
+        {
+            EscurecerTela(largura, altura);
+        }
+
+        string titulo = fimDoJogo ? "Fim da jornada" : "Fase completa!";
+        TextoComContorno(new Rect(largura * 0.1f, fimDoJogo ? altura * 0.62f : altura * 0.15f, largura * 0.8f, altura * 0.14f),
+            titulo, (int)(28f * u), TextAnchor.MiddleCenter, new Color(0.94f, 0.97f, 0.92f), FontStyle.Bold, 2f * u);
+
+        GUIStyle texto = new GUIStyle(GUI.skin.label);
+        texto.fontSize = (int)(8f * u);
+        texto.alignment = TextAnchor.UpperCenter;
+        texto.wordWrap = true;
+        texto.normal.textColor = new Color(0.92f, 0.9f, 0.86f);
+        float yTexto = fimDoJogo ? altura * 0.75f : altura * 0.32f;
+        GUI.Label(new Rect(largura * 0.15f, yTexto, largura * 0.7f, altura * 0.14f), textoFim, texto);
+
+        string nomeBotao = fimDoJogo ? "Voltar ao menu" : "Próxima fase";
+        float yBotao = fimDoJogo ? altura * 0.9f : altura * 0.7f;
+        if (Botao(new Rect(largura * 0.38f, yBotao, largura * 0.24f, altura * 0.07f), nomeBotao, u, true))
+        {
+            ProximaFase();
+        }
+    }
+
+
+    // ---------------------------------------------------------------- peças de interface
+
+    // Botão bonito: fundo escuro, borda e brilho quando o mouse passa por cima. Devolve true quando clicado.
+    bool Botao(Rect area, string texto, float u, bool principal)
+    {
+        bool sobre = area.Contains(Event.current.mousePosition);
+
+        Color fundo = principal ? new Color(0.1f, 0.4f, 0.36f, 0.92f) : new Color(0.05f, 0.1f, 0.15f, 0.85f);
+        if (sobre)
+        {
+            fundo = Color.Lerp(fundo, new Color(0.45f, 1f, 0.8f, 1f), 0.3f);
+        }
+
+        GUI.color = fundo;
+        GUI.DrawTexture(area, Texture2D.whiteTexture);
+
+        // Borda
+        float borda = Mathf.Max(1f, 1.5f * u);
+        GUI.color = sobre ? new Color(0.8f, 1f, 0.92f, 1f) : new Color(0.55f, 0.8f, 0.85f, 0.7f);
+        GUI.DrawTexture(new Rect(area.x, area.y, area.width, borda), Texture2D.whiteTexture);
+        GUI.DrawTexture(new Rect(area.x, area.yMax - borda, area.width, borda), Texture2D.whiteTexture);
+        GUI.DrawTexture(new Rect(area.x, area.y, borda, area.height), Texture2D.whiteTexture);
+        GUI.DrawTexture(new Rect(area.xMax - borda, area.y, borda, area.height), Texture2D.whiteTexture);
+        GUI.color = Color.white;
+
+        GUIStyle estilo = new GUIStyle(GUI.skin.label);
+        estilo.alignment = TextAnchor.MiddleCenter;
+        estilo.fontSize = (int)(9f * u);
+        estilo.fontStyle = FontStyle.Bold;
+        estilo.normal.textColor = Color.white;
+        GUI.Label(area, texto, estilo);
+
+        // Botão invisível por cima, só para detectar o clique
+        return GUI.Button(area, GUIContent.none, GUIStyle.none);
+    }
+
+
+    // Texto com contorno escuro (fica legível em cima de qualquer imagem)
+    void TextoComContorno(Rect area, string texto, int tamanho, TextAnchor alinhamento, Color cor, FontStyle estilo, float espessura)
+    {
+        GUIStyle s = new GUIStyle(GUI.skin.label);
+        s.fontSize = tamanho;
+        s.alignment = alinhamento;
+        s.fontStyle = estilo;
+        s.wordWrap = true;
+
+        s.normal.textColor = new Color(0.01f, 0.05f, 0.07f, cor.a);
+
+        for (int dx = -1; dx <= 1; dx++)
+        {
+            for (int dy = -1; dy <= 1; dy++)
+            {
+                if (dx != 0 || dy != 0)
+                {
+                    GUI.Label(new Rect(area.x + dx * espessura, area.y + dy * espessura, area.width, area.height), texto, s);
+                }
+            }
+        }
+
+        s.normal.textColor = cor;
+        GUI.Label(area, texto, s);
+    }
+
+
+    void SairDoJogo()
+    {
+        Application.Quit();
+
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#endif
     }
 
 
