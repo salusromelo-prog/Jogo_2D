@@ -8,7 +8,7 @@
 | [ARQUITETURA.md](ARQUITETURA.md) | Como as peças se conectam, tags, física, animação, problemas conhecidos |
 | [ROADMAP.md](ROADMAP.md) | Próximos passos priorizados |
 
-> Atualização: o jogo agora tem uma trilogia de fases (veja [HISTORIA.md](HISTORIA.md)). Só a Fase 1 está pronta.
+> Atualização: o jogo agora tem uma trilogia de fases (veja [HISTORIA.md](HISTORIA.md)). As Fases 1 e 2 estão prontas.
 > As fases são montadas por um arquivo de texto. A seção "Como editar o mapa" explica como.
 
 ## Visão geral
@@ -20,7 +20,8 @@ em Unity.
 - **Engine:** Unity 6000.1.4f1 (Unity 6)
 - **Render pipeline:** URP 17.1 com Renderer 2D
 - **Entrada:** Input System 1.14 instalado, projeto configurado com `activeInputHandler: 2` (aceita os dois sistemas). Os scripts usam a API antiga (`Input.GetAxis`, `Input.GetKeyDown`).
-- **Cenas:** `Assets/Scenes/Fase1.unity` (build index 0). A Fase 2 e a Fase 3 serão novas cenas na lista do Build Settings.
+- **Cenas:** `Fase1.unity` (índice 0) e `Fase2.unity` (índice 1). A Fase 3 será uma nova cena na lista do Build Settings.
+  Ao tocar no portão, o jogo vai para a próxima cena da lista.
 
 ## Como rodar
 
@@ -28,6 +29,15 @@ em Unity.
 2. Clone o repositório e adicione a pasta no Unity Hub (Add project from disk).
 3. Abra `Assets/Scenes/Fase1.unity` e aperte Play.
 
+## Interface (HUD)
+
+Desenhada pelo `GameManager` (`OnGUI`), em escala com o tamanho da tela. Ícones em `Assets/Resources/Arte/ui_*.png`.
+
+- **Canto esquerdo:** corações de vida (cheios = restam, vazios = perdidos), altares acesos (por exemplo 1/3) e inimigos
+  derrotados (por exemplo 2/4).
+- **Canto direito:** nome da fase, objetivo (`@dica`), barra de progresso até o portão e a distância em metros.
+- **Seta na borda da tela:** quando o portão não está à vista, uma seta pulsando aponta para ele, com a distância.
+- **Dica dos controles** embaixo da tela nos primeiros 9 segundos de cada fase.
 ## Como editar o mapa
 
 O mapa da Fase 1 é o arquivo de texto `Assets/Resources/Fases/fase1.txt`. Cada letra vira uma parte da fase quando
@@ -36,17 +46,41 @@ Uma imagem do mapa inteiro está em [fase1_mapa.png](fase1_mapa.png).
 
 | Letra | O que vira |
 |---|---|
-| `#` | bloco de pedra (a borda vermelha aparece sozinha quando não há pedra em cima) |
-| `T` | plataforma de telhado |
-| `^` | espinhos |
+| `#` | chão sólido (pedra na vila e no desfiladeiro, terra na floresta; a borda de cima aparece sozinha quando não há chão em cima) |
+| `T` | plataforma fina (telhado na vila, passarela de madeira no desfiladeiro, balsa de bambu na floresta) |
+| `V` | pé de bambu, uma parede para pular (só existe no tema floresta, hoje sem fase) |
+| `Q` | plataforma que quebra: treme, cai em 0,6 s e volta depois de 3 s |
+| `^` | espinhos no chão |
+| `<` `>` | espinhos na parede: `>` fica preso na parede da esquerda e aponta para a direita, `<` o contrário |
+| `C` | altar de lanterna (checkpoint): ao passar, o player volta para ele quando perder uma vida |
 | `P` | onde o player começa |
 | `E` | inimigo |
 | `G` | portão do fim da fase |
 | `L` | lanterna (só enfeite) |
+| `r` `e` `v` | seta brilhante que mostra o caminho: `r` para a direita, `e` para a esquerda, `v` para baixo |
 | `.` | vazio |
 
-As linhas que começam com `@` não são mapa: `@titulo`, `@historia` e `@fim` são os textos que aparecem nas telas.
-A linha de baixo do arquivo é a altura 0. Para pular um vão com folga, use vãos de até 3 blocos e subidas de até 2.
+As linhas que começam com `@` não são mapa: `@titulo`, `@historia` e `@fim` são os textos que aparecem nas telas, `@dica` é uma frase curta com o objetivo da fase (aparece na tela da história e no HUD) e `@camera tamanho alturaExtra alturaExtraQueda` ajusta a câmera da fase (tamanho maior = mais zoom out; alturaExtra negativa = a câmera fica abaixo do player e mostra mais o que vem embaixo; o padrão é 5, 2 e -1,5). A Fase 2 usa `@camera 7 -2 -4.5`, e
+`@tema desfiladeiro` troca o visual (sem essa linha o tema é a vila). Imagens de um tema começam com o nome dele, por exemplo `desfiladeiro_`
+(por exemplo `desfiladeiro_tile_topo.png`); se uma imagem do tema não existir, o jogo usa a normal.
+
+### Fase 2: Desfiladeiro Nebuloso (fase que desce)
+Mapa: `Assets/Resources/Fases/fase2.txt` (76 x 68 blocos, tema `desfiladeiro`). Imagens: [fase2_mapa.png](fase2_mapa.png),
+[fase2_poco.png](fase2_poco.png) e [fase2_visual.png](fase2_visual.png).
+- **Diferente da Fase 1:** é de dia nublado, com paredões claros, cachoeiras e névoa branca, e o jogo é uma **descida**
+  em vez de uma subida e de uma corrida para a direita. A câmera olha mais para baixo quando você cai rápido, e o
+  player tem velocidade máxima de queda (`maxFallSpeed`).
+- **Sala 1:** do mirante, desça por degraus de tábuas velhas que quebram.
+- **Sala 2:** o poço com **espinhos nas paredes** (em lados alternados) e espinhos no chão. Desvie caindo ou
+  deslizando na parede. Um altar fica logo antes.
+- **Sala 3:** ponte de tábuas sobre o abismo, com um inimigo e o altar 2.
+- **Sala 4:** zigue-zague descendo por ledges, com inimigo, espinhos na parede e o altar 3.
+- **Sala 5:** o rio, com tábuas como pedras para atravessar até o portão, no fundo, embaixo do mirante.
+- **Como se orientar:** setas brilhantes nos pontos de decisão, uma coluna de luz verde sobre o portão (aparece no fundo) e a dica "Desça até o portão de luz verde" na tela da história e no canto da tela.
+- **Tetos de pedra com espinhos** impedem de cair direto do começo até o fim.
+- Uma busca automática com simulação de física confirmou que há caminho do início ao portão (passando pelos três
+  altares) e que o poço dos espinhos de parede é possível de atravessar. Isso não substitui jogar: ajuste vãos e
+  espinhos no mapa se achar difícil ou fácil demais.
 
 Para criar uma nova fase: copie `fase1.txt` para `fase2.txt`, mude o desenho, duplique a cena `Fase1`, troque o
 campo "Arquivo Mapa" do objeto `LevelBuilder` para `Fases/fase2` e coloque a cena nova no Build Settings.
@@ -105,14 +139,18 @@ Assets/
 | `CameraFollow.cs` | `CameraFollow` | Câmera (adicionado pelo LevelBuilder) | Segue o player sem sair do mapa |
 | `Parallax.cs` | `Parallax` | Camadas do fundo | Faz o céu, as montanhas e a vila andarem em velocidades diferentes |
 | `Portao.cs` | `Portao` | Portão do fim da fase | Ao receber o Player, termina a fase |
+| `Checkpoint.cs` | `Checkpoint` | Altar (letra `C`) | Acende ao Player passar e guarda o ponto de retorno no GameManager |
+| `PlataformaQuebra.cs` | `PlataformaQuebra` | Tábuas (letra `Q`) | Treme quando o Player pisa, some e volta depois de um tempo |
+| `Seta.cs` | `Seta` | Setas (letras `r` `e` `v`) | Balança na direção que aponta e pisca, para guiar o jogador |
+| `Vagalumes.cs` | `Vagalumes` | Objeto criado pelo LevelBuilder | Luzinhas flutuando ao redor da câmera (vaga-lumes ou poeirinhas de névoa) |
 
 ### Parâmetros expostos no Inspector
 
-- `Player`: `speed` (6), `jumpForce` (10), `wallSlideSpeed` (2), `wallJumpX` (7), `wallJumpTime` (0,2), `checkDistance` (0,1)
+- `Player`: `speed` (6), `jumpForce` (10), `maxFallSpeed` (14), `wallSlideSpeed` (2), `wallJumpX` (7), `wallJumpTime` (0,2), `checkDistance` (0,1)
 - `PlayerTiro`: `bala`, `pontoDeTiro`
 - `Bala`: `velocidade` (7), `direcao`
 - `Enemy`: `velocidade`, `distancia`, `bala`, `pontoTiro`, `distanciaTiro`, `tempoEntreTiros`
-- `GameManager`: `vidasIniciais` (3), `tempoInvencivel` (1,5), `limiteQueda` (-15)
+- `GameManager`: `vidasIniciais` (3), `tempoInvencivel` (1,5), `limiteQueda` (-15), `volumeEfeitos` (0,3), `volumeMusica` (0,12)
 
 ## Tags e layers
 

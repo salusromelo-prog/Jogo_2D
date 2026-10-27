@@ -24,6 +24,7 @@ public class Bala : MonoBehaviour
         if (collision.CompareTag("Enemy"))
         {
             GameManager.Tocar("inimigo_morre");
+            GameManager.InimigoDerrotado();
             Destroy(collision.gameObject);
             Destroy(gameObject);
         }

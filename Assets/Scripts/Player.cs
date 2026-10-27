@@ -5,6 +5,7 @@ public class Player : MonoBehaviour
     [Header("Movimento")]
     public float speed = 6f;        // velocidade andando
     public float jumpForce = 10f;   // força do pulo
+    public float maxFallSpeed = 14f;    // velocidade máxima de queda (para a queda não ficar rápida demais)
 
     [Header("Parede")]
     public float wallSlideSpeed = 2f;   // velocidade máxima de queda quando está deslizando na parede
@@ -109,6 +110,12 @@ public class Player : MonoBehaviour
         if (!noChao && empurrandoParede && rb.linearVelocity.y < -wallSlideSpeed)
         {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, -wallSlideSpeed);
+        }
+
+        // 6) Limite de velocidade de queda
+        if (rb.linearVelocity.y < -maxFallSpeed)
+        {
+            rb.linearVelocity = new Vector2(rb.linearVelocity.x, -maxFallSpeed);
         }
     }
 
