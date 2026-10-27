@@ -2,58 +2,60 @@ using UnityEngine;
 
 public class Enemy : MonoBehaviour
 {
-    public float velocidade = 2f;
-    public float distancia = 2f;
+    public float velocidade = 2f;   // velocidade andando
+    public float distancia = 2f;    // quanto anda para cada lado a partir do ponto inicial
 
     [Header("Tiro")]
-    public GameObject bala;
-    public Transform pontoTiro;
-    public float distanciaTiro = 6f;
-    public float tempoEntreTiros = 2f;
+    public GameObject bala;             // prefab da bala do inimigo
+    public Transform pontoTiro;         // de onde a bala sai
+    public float distanciaTiro = 6f;    // distância máxima para ele atirar no player
+    public float tempoEntreTiros = 2f;  // tempo de espera entre um tiro e outro
 
     private float limiteEsquerdo;
     private float limiteDireito;
-    private int direcao = 1;
+    private int direcao = 1;    // 1 = direita, -1 = esquerda
 
-    private float contadorTiro;
+    private float contadorTiro; // conta o tempo de espera do tiro
 
     private Transform jogador;
+    private Animator animator;
 
 
     void Start()
     {
+        // Os limites da patrulha ficam ao redor de onde o inimigo começou
         limiteEsquerdo = transform.position.x - distancia;
         limiteDireito = transform.position.x + distancia;
 
         jogador = GameObject.FindGameObjectWithTag("Player").transform;
+        animator = GetComponent<Animator>();
     }
 
 
     void Update()
     {
-        // Movimento do inimigo
+        // Anda na direção atual
         transform.Translate(Vector2.right * direcao * velocidade * Time.deltaTime);
 
-
-        // Faz o inimigo virar
+        // Chegou no limite da direita: volta para a esquerda
         if (transform.position.x >= limiteDireito)
         {
             direcao = -1;
             Virar();
         }
 
+        // Chegou no limite da esquerda: volta para a direita
         if (transform.position.x <= limiteEsquerdo)
         {
             direcao = 1;
             Virar();
         }
 
-
-        // Verifica se pode atirar
         VerificarTiro();
     }
 
 
+    // Espelha o inimigo para o outro lado
     void Virar()
     {
         Vector3 escala = transform.localScale;
@@ -62,13 +64,13 @@ public class Enemy : MonoBehaviour
     }
 
 
+    // Só atira se o player estiver perto e na frente dele
     void VerificarTiro()
     {
         float distanciaPlayer = Mathf.Abs(jogador.position.x - transform.position.x);
 
         if (distanciaPlayer <= distanciaTiro)
         {
-            // Player est� na frente do inimigo
             if (direcao == 1 && jogador.position.x > transform.position.x)
             {
                 Atirar();
@@ -84,21 +86,22 @@ public class Enemy : MonoBehaviour
 
     void Atirar()
     {
+        // Ainda esperando o tempo entre tiros
         if (contadorTiro > 0)
         {
             contadorTiro -= Time.deltaTime;
             return;
         }
 
-        GameObject novaBala = Instantiate(
-            bala,
-            pontoTiro.position,
-            Quaternion.identity
-        );
+        // Cria a bala e manda ela na direção do inimigo
+        GameObject novaBala = Instantiate(bala, pontoTiro.position, Quaternion.identity);
+        novaBala.GetComponent<Bala>().direcao = direcao;
 
-        Bala balaScript = novaBala.GetComponent<Bala>();
-
-        balaScript.direcao = direcao;
+        // Toca a animação de ataque (só se o inimigo tiver um Animator com controller)
+        if (animator != null && animator.runtimeAnimatorController != null)
+        {
+            animator.SetTrigger("Atacar");
+        }
 
         contadorTiro = tempoEntreTiros;
     }
