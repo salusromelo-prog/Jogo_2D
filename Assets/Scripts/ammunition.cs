@@ -23,6 +23,7 @@ public class Bala : MonoBehaviour
         // Se acertar um inimigo, destrói o inimigo e a bala
         if (collision.CompareTag("Enemy"))
         {
+            GameManager.Tocar("inimigo_morre");
             Destroy(collision.gameObject);
             Destroy(gameObject);
         }

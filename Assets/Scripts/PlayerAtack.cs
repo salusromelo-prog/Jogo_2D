@@ -20,6 +20,12 @@ public class PlayerTiro : MonoBehaviour
 
     void Update()
     {
+        // Jogo parado (menu ou Game Over): não faz nada
+        if (Time.timeScale == 0)
+        {
+            return;
+        }
+
         // flipX = true significa que o personagem olha para a esquerda
         bool olhandoEsquerda = GetComponent<SpriteRenderer>().flipX;
 
@@ -37,6 +43,7 @@ public class PlayerTiro : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.F))
         {
             GameObject novaBala = Instantiate(bala, pontoDeTiro.position, Quaternion.identity);
+            GameManager.Tocar("tiro");
 
             Bala scriptBala = novaBala.GetComponent<Bala>();
 

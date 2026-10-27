@@ -40,6 +40,12 @@ public class Player : MonoBehaviour
 
     void Update()
     {
+        // Jogo parado (menu ou Game Over): não faz nada
+        if (Time.timeScale == 0)
+        {
+            return;
+        }
+
         float moveHorizontal = Input.GetAxis("Horizontal");
 
         // 1) Descobre onde o player está encostando
@@ -77,11 +83,13 @@ public class Player : MonoBehaviour
             {
                 // Pulo normal: troca só a velocidade vertical
                 rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
+                GameManager.Tocar("pulo");
             }
             else if (paredeLado != 0)
             {
                 // Pulo da parede: vai para o lado oposto da parede e para cima
                 rb.linearVelocity = new Vector2(-paredeLado * wallJumpX, jumpForce);
+                GameManager.Tocar("pulo");
                 travaTimer = wallJumpTime;
 
                 // Vira o personagem para longe da parede

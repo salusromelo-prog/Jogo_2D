@@ -2,53 +2,42 @@
 
 ## Visão geral
 
-Arquitetura simples e orientada a componentes da Unity. Cada comportamento é um `MonoBehaviour` independente
-em um GameObject. Não há gerenciador de jogo, singletons nem eventos: a comunicação é por colisão/trigger e
-por `GetComponent` direto.
+Arquitetura simples, orientada a componentes da Unity. Cada comportamento é um `MonoBehaviour` em um GameObject.
+O único script "central" é o `GameManager`, que guarda vidas, estado do menu e sons. Os outros scripts falam com
+ele por métodos `static` (`GameManager.PerderVida()` e `GameManager.Tocar("nome")`).
 
 ```
-                      ┌────────────┐  GetComponent   ┌─────────────┐
- tecla F ───────────► │ PlayerTiro │ ──────────────► │ SpriteRend. │ (lê flipX)
-                      └─────┬──────┘                 └─────────────┘
-                            │ Instantiate + define direcao
-                            ▼
-                      ┌────────────┐  trigger "Enemy"  ┌────────┐
-                      │   Bala     │ ────────────────► │ Enemy  │ Destroy()
-                      └────────────┘                   └────────┘
+ teclas ──► Player ──► Rigidbody2D (velocidade)
+              │  ├──► Animator (int "trans") + flipX
+              │  └──► detecta chão/parede com Collider2D.Cast (tags Ground / Wall)
+              └──► PlayerTiro ──► Instantiate(Shuriken) ──► Bala ──► Destroy(Enemy)
 
- Input ──► Player ──► Rigidbody2D (velocidade/impulso)
-              │  └──► Animator (int "trans") + SpriteRenderer.flipX
-              └── OnCollision "Ground" ──► isGraunded
+ Enemy ──► patrulha ──► atira (EnemyBullet = Bala + Espinho) ──► Animator trigger "Atacar"
 
- Espinho ── colisão "Player" ──► SceneManager.LoadScene(0)
+ Espinho (espinho, inimigo, bala inimiga) ──► GameManager.PerderVida()
+ GameManager ──► vidas, respawn, Game Over, menu (OnGUI), música e sons (Resources/Sons)
 ```
 
 ## Cena `jogo`
 
-Hierarquia (resumida): `Main Camera`, `Background_City`, `Grid/GroundTilemap` (chão em tilemap),
-`Floors/Statics` (plataformas `Floor…`), `Enemys/Enemy`, `Player` (com filho `PontoTiro`), espinhos (instâncias
-do prefab `Triangle (1)`).
+`Main Camera` (fixa), `Background`, `Grid/GroundTilemap` (tag Ground), `Floors/Statics` (plataformas `Floor`, tag
+Ground), `Enemys/Enemy` e `Enemy (1)`, `Player/Sprite` (o player de verdade, com tag Player), espinhos e o objeto
+`GameManager`.
 
-## Decisões e convenções atuais
+## Decisões e convenções
 
-- **Física:** movimento do player via `Rigidbody2D.linearVelocity` (API do Unity 6). Bala e inimigo andam por `transform.Translate`, sem física.
-- **Detecção de chão:** por colisão com a tag `Ground` (`OnCollisionEnter2D/Exit2D`).
-- **Dano/morte:** inexistente para o jogador além dos espinhos. Inimigo morre instantaneamente.
-- **Direção do player:** é guardada só em `SpriteRenderer.flipX` e lida pelo `PlayerTiro`.
-- **Reinício:** recarregar a cena de índice 0.
+- **Menu e HUD com `OnGUI`:** é a forma mais simples de fazer tela sem montar Canvas. Pode ser trocado por UI (uGUI) depois.
+- **Pausa:** menu e Game Over usam `Time.timeScale = 0`. `Player`, `PlayerTiro` e `Enemy` saem do `Update` quando o tempo está parado.
+- **`static` no GameManager** (`vidas`, `jaComecou`) mantém o valor quando a cena recarrega, por isso o menu só aparece na primeira vez.
+- **Detecção de chão/parede:** `Collider2D.Cast` ao redor do player, filtrando por tag. Não precisa de objetos extras na cena.
+- **Sons por nome** com `Resources.Load`: trocar o arquivo mantendo o nome já troca o som.
+- **Entrada:** `Input.GetAxis/GetKeyDown` (sistema antigo). O Input System novo está instalado, mas não usado.
 
-## Problemas conhecidos
+## Pontos para melhorar
 
-Ordenados por impacto.
-
-1. **Nome da classe diferente do nome do arquivo.** `PlayerAtack.cs` contém `PlayerTiro`, `ammunition.cs` contém `Bala` e `Espinhos.cs` contém `Espinho`. A Unity espera os dois iguais. Funciona hoje pelos GUIDs já gravados na cena, mas é frágil: dá aviso/erro ao adicionar o script por código ou pelo Inspector e confunde na hora de achar o código.
-2. **Inimigo não machuca o player.** `Enemy.cs` só patrulha. O jogador atravessa ou empurra o inimigo sem consequência (a tag `Dano` existe e não é usada).
-3. **Chão por contagem de colisão frágil.** `isGraunded` vira `false` ao sair de *qualquer* colisão com `Ground`. Em tilemap com vários colliders ou ao tocar numa parede de `Ground`, o pulo pode falhar ou permitir pulo no ar. O ideal é `OverlapCircle`/raycast nos pés.
-4. **Input antigo com Input System instalado.** O projeto usa `Input.GetAxis/GetKeyDown` e tem `InputSystem_Actions.inputactions` sem uso. Funciona porque `activeInputHandler` = ambos, mas é duplicação.
-5. **Movimento em `Update` mexendo no Rigidbody.** Física deve ir em `FixedUpdate`. Hoje a velocidade é setada por frame (aceitável), mas o pulo por `AddForce` em `Update` depende do framerate de entrada.
-6. **Bala e inimigo sem física.** `Translate` ignora colisão com parede: a bala atravessa o cenário até os 3 s e o inimigo anda "no ar" se a plataforma for menor que `distancia`.
-7. **Inimigo é destruído com `Destroy` direto na bala.** Sem vida, sem animação de morte, sem pontuação. A bala também colide só com tag `Enemy`; no cenário ela passa por tudo.
-8. **Inimigo vira por `localScale.x`, player por `flipX`.** Duas formas diferentes de espelhar, e o `Animator` do inimigo está incompleto (commit "falta arrumar a animação dele").
-9. **Limpeza de código:** `using static UnityEngine.RuleTile.TilingRuleOutput;` sobrando em `Enemy.cs`; variáveis `animator`/`spriteRenderer` do inimigo nunca usadas; `isGraunded` com erro de digitação; comentário "Vira para a esquerda" repetido nos dois lados; `Player.cs` salvo em codificação Windows-1252 (acentos quebram em editores UTF-8); `using SceneManagement` não usado em `Player.cs`.
-10. **Assets:** frames com nomes `Imagem do ChatGPT …` (espaços e vírgulas), `Player_idle.anim` solto na raiz de `Assets`, `Triangle (1).prefab` com nome genérico, controllers duplicados na pasta da shuriken (`Munition.controller`, `Shuriken.controller` e um terceiro com nome de imagem). PNGs grandes (0,5 a 2,4 MB cada) para sprites pequenos.
-11. **Repositório:** `.gitignore` está correto (nenhum arquivo de `Library/`, `Temp/` ou `Logs/` versionado). O projeto está dentro do OneDrive, que pode sincronizar `Library/` e causar conflitos.
+- Bala e inimigo andam por `Translate` e atravessam paredes.
+- Os frames do inimigo têm recortes de tamanhos diferentes, então o sprite balança um pouco.
+- Nomes de classe diferentes dos arquivos (`PlayerTiro` em `PlayerAtack.cs`, `Bala` em `ammunition.cs`, `Espinho` em `Espinhos.cs`).
+- Câmera fixa: se a fase ficar maior que a tela, será preciso uma câmera que siga o player.
+- Assets com nomes genéricos (`Imagem do ChatGPT …`), controllers duplicados da shuriken e PNGs grandes.
+- O projeto está dentro do OneDrive, que pode sincronizar a pasta `Library/` e causar conflitos.

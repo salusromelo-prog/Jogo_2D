@@ -10,8 +10,7 @@ AnimatorState:
   m_Name: Enemy_run
   m_Speed: 1
   m_CycleOffset: 0
-  m_Transitions:
-  - {fileID: -3606417015442431495}
+  m_Transitions: []
   m_StateMachineBehaviours: []
   m_Position: {x: 50, y: 50, z: 0}
   m_IKOnFeet: 0
@@ -56,7 +55,7 @@ AnimatorStateMachine:
   m_EntryPosition: {x: 30, y: 100, z: 0}
   m_ExitPosition: {x: 800, y: 120, z: 0}
   m_ParentStateMachinePosition: {x: 800, y: 20, z: 0}
-  m_DefaultState: {fileID: -546698502202263713}
+  m_DefaultState: {fileID: -8032788656878279552}
 --- !u!1109 &-6815954612344409645
 AnimatorTransition:
   m_ObjectHideFlags: 1
@@ -66,7 +65,7 @@ AnimatorTransition:
   m_Name: 
   m_Conditions: []
   m_DstStateMachine: {fileID: 0}
-  m_DstState: {fileID: -546698502202263713}
+  m_DstState: {fileID: -8032788656878279552}
   m_Solo: 0
   m_Mute: 0
   m_IsExit: 0
@@ -125,8 +124,7 @@ AnimatorState:
   m_Name: Enemy_idle
   m_Speed: 1
   m_CycleOffset: 0
-  m_Transitions:
-  - {fileID: -1775780304318461238}
+  m_Transitions: []
   m_StateMachineBehaviours: []
   m_Position: {x: 50, y: 50, z: 0}
   m_IKOnFeet: 0
@@ -203,7 +201,7 @@ AnimatorStateTransition:
   m_Name:
   m_Conditions: []
   m_DstStateMachine: {fileID: 0}
-  m_DstState: {fileID: -546698502202263713}
+  m_DstState: {fileID: -8032788656878279552}
   m_Solo: 0
   m_Mute: 0
   m_IsExit: 0

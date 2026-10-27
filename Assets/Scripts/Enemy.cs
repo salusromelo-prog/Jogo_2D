@@ -34,6 +34,12 @@ public class Enemy : MonoBehaviour
 
     void Update()
     {
+        // Jogo parado (menu ou Game Over): não faz nada
+        if (Time.timeScale == 0)
+        {
+            return;
+        }
+
         // Anda na direção atual
         transform.Translate(Vector2.right * direcao * velocidade * Time.deltaTime);
 
@@ -96,6 +102,7 @@ public class Enemy : MonoBehaviour
         // Cria a bala e manda ela na direção do inimigo
         GameObject novaBala = Instantiate(bala, pontoTiro.position, Quaternion.identity);
         novaBala.GetComponent<Bala>().direcao = direcao;
+        GameManager.Tocar("tiro_inimigo");
 
         // Toca a animação de ataque (só se o inimigo tiver um Animator com controller)
         if (animator != null && animator.runtimeAnimatorController != null)

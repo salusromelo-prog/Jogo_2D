@@ -36,10 +36,12 @@ em Unity.
 ## Mecânicas atuais
 
 - **Movimento horizontal** por velocidade direta no `Rigidbody2D`.
-- **Pulo** por impulso vertical, permitido só quando em contato com objeto de tag `Ground`.
-- **Tiro:** instancia o prefab da shuriken no `PontoTiro`, que troca de lado conforme o personagem vira. A shuriken some após 3 s ou ao acertar um `Enemy`.
-- **Inimigo:** patrulha de um lado para o outro e vira o sprite nos limites. Morre com um tiro.
-- **Espinhos:** tocar neles recarrega a cena (reinício da fase).
+- **Pulo** só no chão (detectado com o collider do player, tag `Ground`). Soltar o espaço no meio do pulo corta a subida (pulo curto).
+- **Parede:** no ar, encostado numa parede (`Ground` ou `Wall`) e empurrando contra ela, o player desliza devagar. Espaço faz o pulo da parede, que joga o player para longe dela.
+- **Tiro:** instancia a shuriken no `PontoTiro`, que troca de lado conforme o personagem vira. A shuriken some após 3 s ou ao acertar um `Enemy`.
+- **Inimigo:** patrulha de um lado para o outro, vira nos limites e atira no player quando ele está perto e na frente. Pisca vermelho ao atirar (animação de ataque).
+- **Dano e vidas:** espinhos, inimigos e balas inimigas tiram 1 vida (começa com 3). Ao perder vida o player volta ao início, pisca e fica invencível por 1,5 s. Cair do mapa também tira uma vida. Sem vidas aparece Game Over.
+- **Menu inicial** com botão Jogar (ou Enter), vidas na tela, **música e sons** (pulo, tiro, dano, etc.).
 
 ## Estrutura de pastas
 
@@ -62,29 +64,35 @@ Assets/
 
 | Arquivo | Classe | Objeto | Função |
 |---|---|---|---|
-| `Player.cs` | `Player` | Player | Movimento, pulo, flip do sprite, parâmetro `trans` do Animator, detecção de chão |
-| `PlayerAtack.cs` | `PlayerTiro` | Player | Posiciona o `PontoTiro`, instancia a bala ao apertar F e define a direção |
-| `ammunition.cs` | `Bala` | Prefab Shuriken | Anda em linha reta, destrói-se em 3 s, mata `Enemy` ao encostar (trigger) |
-| `Enemy.cs` | `Enemy` | Enemy | Patrulha entre `posição inicial ± distancia` e vira o `localScale.x` |
-| `Espinhos.cs` | `Espinho` | Prefab espinho | Em colisão com `Player`, chama `SceneManager.LoadScene(0)` |
+| `Player.cs` | `Player` | Player (objeto "Sprite") | Movimento, pulo, pulo da parede, deslizar, flip do sprite, parâmetro `trans` do Animator |
+| `PlayerAtack.cs` | `PlayerTiro` | Player | Posiciona o `PontoTiro`, instancia a shuriken ao apertar F |
+| `ammunition.cs` | `Bala` | Shuriken e bala do inimigo | Anda em linha reta, some em 3 s, mata `Enemy` ao encostar (trigger) |
+| `Enemy.cs` | `Enemy` | Enemy | Patrulha, vira, atira no player e dispara a animação de ataque |
+| `Espinhos.cs` | `Espinho` | Espinho, inimigo, bala inimiga | Ao encostar no `Player`, chama `GameManager.PerderVida()` |
+| `GameManager.cs` | `GameManager` | Objeto vazio "GameManager" | Menu, vidas, Game Over, respawn, queda do mapa, música e sons |
 
 ### Parâmetros expostos no Inspector
 
-- `Player.speed` (3)
-- `PlayerTiro.bala`, `PlayerTiro.pontoDeTiro`
-- `Bala.velocidade` (7), `Bala.direcao`
-- `Enemy.velocidade` (2), `Enemy.distancia` (2)
+- `Player`: `speed` (6), `jumpForce` (10), `wallSlideSpeed` (2), `wallJumpX` (7), `wallJumpTime` (0,2), `checkDistance` (0,1)
+- `PlayerTiro`: `bala`, `pontoDeTiro`
+- `Bala`: `velocidade` (7), `direcao`
+- `Enemy`: `velocidade`, `distancia`, `bala`, `pontoTiro`, `distanciaTiro`, `tempoEntreTiros`
+- `GameManager`: `vidasIniciais` (3), `tempoInvencivel` (1,5), `limiteQueda` (-15)
 
 ## Tags e layers
 
-Tags: `Ground`, `Dano`, `Enemy`, `Player` (padrão da Unity). `Dano` existe mas nenhum script usa ainda.
+Tags usadas: `Ground` (chão, plataformas e tilemap, inclusive paredes), `Wall` (opcional, também vale como parede), `Enemy`, `Player`. A tag `Dano` existe no espinho mas nenhum script depende dela.
+
+## Sons
+
+Ficam em `Assets/Resources/Sons/` (pulo, tiro, tiro_inimigo, dano, inimigo_morre, clique, gameover e musica). O `GameManager.Tocar("nome")` carrega pelo nome do arquivo, então dá para trocar qualquer som mantendo o mesmo nome. Os sons atuais foram gerados por código (estilo 8 bits) e servem de provisórios.
 
 ## Animação
 
 | Controller | Parâmetro | Clips |
 |---|---|---|
 | `Player.controller` | int `trans` (0 parado, 1 correndo) | `Player_idle`, `Player_run` |
-| `Enemy.controller` | — | `enemy_run` |
+| `Enemy.controller` | trigger `Atacar` | `Enemy_Run` (3 frames em loop), `Enemy_Attack` (pisca vermelho) |
 | `Shuriken.controller` | — | `Shuriken_Spin` |
 
 ## Histórico de desenvolvimento
