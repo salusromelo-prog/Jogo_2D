@@ -8,6 +8,13 @@
 - [x] Animação de andar do inimigo e de parado do player
 - [x] Comentários nos scripts
 
+## Trilogia (veja HISTORIA.md)
+- [x] Roteiro das 3 fases
+- [x] Fase 1: Telhados da Vila (mapa, arte, câmera, portão, história)
+- [ ] Fase 2: Floresta de Bambu (parkour de parede)
+- [ ] Fase 3: Fortaleza e a cela do amigo (final do jogo e tela de vitória)
+- [ ] Arte nova de cada fase (hoje é pixel art simples gerada por código)
+
 ## Para refinar (próxima rodada)
 - [ ] Ajustar a "sensação" do pulo (`speed`, `jumpForce`, `wallSlideSpeed`, `wallJumpX`) jogando e testando
 - [ ] Animação de pulo/queda do player (precisa de arte)

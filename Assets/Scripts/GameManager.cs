@@ -1,21 +1,29 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-// Controla o jogo: menu inicial, vidas, Game Over, música e sons.
-// Fica em um objeto vazio chamado GameManager na cena.
+// Controla o jogo: menu, história, vidas, Game Over, fim de fase, música e sons.
+// Fica em um objeto vazio chamado GameManager em cada fase.
 public class GameManager : MonoBehaviour
 {
-    public int vidasIniciais = 3;       // quantas vidas o player começa
+    public int vidasIniciais = 3;        // quantas vidas o player começa
     public float tempoInvencivel = 1.5f; // tempo sem levar dano depois de perder uma vida
-    public float limiteQueda = -15f;    // se o player cair abaixo dessa altura, perde uma vida
+    public float limiteQueda = -15f;     // se o player cair abaixo dessa altura, perde uma vida
+
+    // Em que "tela" o jogo está
+    enum Estado { Menu, Intro, Jogando, GameOver, FimDeFase }
+    Estado estado;
 
     // "static" faz o valor continuar mesmo quando a cena é recarregada
     static int vidas = -1;
-    static bool jaComecou = false;      // false = ainda está no menu inicial
+    static bool jaComecou = false;      // false = ainda não passou do menu inicial
 
     static GameManager instancia;       // para outros scripts chamarem o GameManager
 
-    bool gameOver = false;
+    // Textos da fase (o LevelBuilder preenche lendo o arquivo do mapa)
+    string tituloFase = "";
+    string historiaFase = "";
+    string textoFim = "";
+
     float invencivelTimer = 0f;
 
     Transform jogador;
@@ -34,21 +42,25 @@ public class GameManager : MonoBehaviour
             vidas = vidasIniciais;
         }
 
-        // No menu o jogo fica parado (timeScale 0). Jogando, roda normal (1).
+        // Primeira vez: menu. Depois: direto na história da fase.
+        // Nas duas telas o jogo fica parado (timeScale 0).
         if (jaComecou)
         {
-            Time.timeScale = 1f;
+            estado = Estado.Intro;
         }
         else
         {
-            Time.timeScale = 0f;
+            estado = Estado.Menu;
         }
+
+        Time.timeScale = 0f;
     }
 
 
     void Start()
     {
         // Procura o player e guarda onde ele começou (para voltar quando perder vida)
+        // (o LevelBuilder já colocou o player no lugar no Awake)
         GameObject objJogador = GameObject.FindGameObjectWithTag("Player");
         jogador = objJogador.transform;
         jogadorRb = objJogador.GetComponent<Rigidbody2D>();
@@ -68,22 +80,39 @@ public class GameManager : MonoBehaviour
     }
 
 
+    // O LevelBuilder chama isto para dizer os textos da fase
+    public void DefinirFase(string titulo, string historia, string fim)
+    {
+        tituloFase = titulo;
+        historiaFase = historia;
+        textoFim = fim;
+    }
+
+
     void Update()
     {
-        // Enter também começa / reinicia o jogo
+        // Enter avança as telas
         if (Input.GetKeyDown(KeyCode.Return))
         {
-            if (!jaComecou)
+            if (estado == Estado.Menu)
             {
-                Comecar();
+                IrParaHistoria();
             }
-            else if (gameOver)
+            else if (estado == Estado.Intro)
+            {
+                ComecarFase();
+            }
+            else if (estado == Estado.GameOver)
             {
                 Reiniciar();
             }
+            else if (estado == Estado.FimDeFase)
+            {
+                ProximaFase();
+            }
         }
 
-        if (!jaComecou || gameOver)
+        if (estado != Estado.Jogando)
         {
             return;
         }
@@ -121,11 +150,21 @@ public class GameManager : MonoBehaviour
         if (instancia == null)
         {
             // Se não tiver GameManager na cena, só reinicia a fase
-            SceneManager.LoadScene(0);
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
             return;
         }
 
         instancia.TirarVida();
+    }
+
+
+    // O portão chama este método quando o player chega nele
+    public static void FimDaFase()
+    {
+        if (instancia != null)
+        {
+            instancia.TerminarFase();
+        }
     }
 
 
@@ -143,8 +182,8 @@ public class GameManager : MonoBehaviour
 
     void TirarVida()
     {
-        // Não leva dano no menu, no Game Over ou enquanto está invencível
-        if (!jaComecou || gameOver || invencivelTimer > 0)
+        // Só leva dano jogando e fora da invencibilidade
+        if (estado != Estado.Jogando || invencivelTimer > 0)
         {
             return;
         }
@@ -154,7 +193,7 @@ public class GameManager : MonoBehaviour
 
         if (vidas <= 0)
         {
-            gameOver = true;
+            estado = Estado.GameOver;
             Time.timeScale = 0f;
             jogadorSprite.enabled = true;
             Tocar("gameover");
@@ -166,7 +205,7 @@ public class GameManager : MonoBehaviour
     }
 
 
-    // Coloca o player de volta no ponto inicial
+    // Coloca o player de volta no ponto inicial da fase
     void VoltarAoInicio()
     {
         jogador.position = posicaoInicial;
@@ -174,24 +213,69 @@ public class GameManager : MonoBehaviour
     }
 
 
-    void Comecar()
+    void IrParaHistoria()
     {
         jaComecou = true;
+        estado = Estado.Intro;
+        Tocar("clique");
+    }
+
+
+    void ComecarFase()
+    {
+        estado = Estado.Jogando;
         Time.timeScale = 1f;
         Tocar("clique");
+    }
+
+
+    void TerminarFase()
+    {
+        if (estado != Estado.Jogando)
+        {
+            return;
+        }
+
+        estado = Estado.FimDeFase;
+        Time.timeScale = 0f;
+        jogadorSprite.enabled = true;
+        Tocar("fase_completa");
+    }
+
+
+    // Existe outra fase depois desta? (precisa estar na lista de cenas do Build Settings)
+    bool TemProximaFase()
+    {
+        return SceneManager.GetActiveScene().buildIndex + 1 < SceneManager.sceneCountInBuildSettings;
+    }
+
+
+    void ProximaFase()
+    {
+        Tocar("clique");
+
+        if (TemProximaFase())
+        {
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
+        }
+        else
+        {
+            // Acabaram as fases: volta ao começo
+            vidas = vidasIniciais;
+            SceneManager.LoadScene(0);
+        }
     }
 
 
     void Reiniciar()
     {
         vidas = vidasIniciais;
-        Time.timeScale = 1f;
         Tocar("clique");
         SceneManager.LoadScene(0);
     }
 
 
-    // Desenha o menu, as vidas e a tela de Game Over (OnGUI é a forma mais simples de fazer tela)
+    // Desenha os menus, as vidas e as telas (OnGUI é a forma mais simples de fazer tela)
     void OnGUI()
     {
         float largura = Screen.width;
@@ -199,50 +283,85 @@ public class GameManager : MonoBehaviour
 
         // Estilos: tamanho das letras depende do tamanho da tela
         GUIStyle titulo = new GUIStyle(GUI.skin.label);
-        titulo.fontSize = (int)(altura / 8);
+        titulo.fontSize = (int)(altura / 10);
         titulo.alignment = TextAnchor.MiddleCenter;
+        titulo.wordWrap = true;
         titulo.normal.textColor = Color.white;
 
         GUIStyle texto = new GUIStyle(GUI.skin.label);
         texto.fontSize = (int)(altura / 28);
-        texto.alignment = TextAnchor.MiddleCenter;
-        texto.normal.textColor = Color.white;
+        texto.alignment = TextAnchor.UpperCenter;
+        texto.wordWrap = true;
+        texto.normal.textColor = new Color(0.9f, 0.85f, 0.8f);
 
         GUIStyle botao = new GUIStyle(GUI.skin.button);
         botao.fontSize = (int)(altura / 20);
 
-        if (!jaComecou)
+        Rect areaTitulo = new Rect(largura * 0.1f, altura * 0.12f, largura * 0.8f, altura * 0.2f);
+        Rect areaTexto = new Rect(largura * 0.15f, altura * 0.36f, largura * 0.7f, altura * 0.3f);
+        Rect areaBotao = new Rect(largura * 0.35f, altura * 0.72f, largura * 0.3f, altura * 0.12f);
+
+        if (estado == Estado.Menu)
         {
             EscurecerTela(largura, altura);
 
-            GUI.Label(new Rect(0, altura * 0.15f, largura, altura * 0.2f), "Jogo 2D", titulo);
-            GUI.Label(new Rect(0, altura * 0.38f, largura, altura * 0.1f),
-                "A / D = andar     Espaço = pular (inclusive na parede)     F = atirar", texto);
+            GUI.Label(areaTitulo, "Jogo 2D", titulo);
+            GUI.Label(areaTexto,
+                "A / D = andar\nEspaço = pular (também na parede)\nF = atirar\nEnter = continuar", texto);
 
-            if (GUI.Button(new Rect(largura * 0.35f, altura * 0.55f, largura * 0.3f, altura * 0.12f), "Jogar", botao))
+            if (GUI.Button(areaBotao, "Jogar", botao))
             {
-                Comecar();
+                IrParaHistoria();
             }
         }
-        else if (gameOver)
+        else if (estado == Estado.Intro)
         {
             EscurecerTela(largura, altura);
 
-            GUI.Label(new Rect(0, altura * 0.2f, largura, altura * 0.2f), "Game Over", titulo);
+            GUI.Label(areaTitulo, tituloFase, titulo);
+            GUI.Label(areaTexto, historiaFase, texto);
 
-            if (GUI.Button(new Rect(largura * 0.35f, altura * 0.5f, largura * 0.3f, altura * 0.12f), "Jogar de novo", botao))
+            if (GUI.Button(areaBotao, "Começar", botao))
+            {
+                ComecarFase();
+            }
+        }
+        else if (estado == Estado.GameOver)
+        {
+            EscurecerTela(largura, altura);
+
+            GUI.Label(areaTitulo, "Game Over", titulo);
+
+            if (GUI.Button(areaBotao, "Jogar de novo", botao))
             {
                 Reiniciar();
             }
         }
+        else if (estado == Estado.FimDeFase)
+        {
+            EscurecerTela(largura, altura);
+
+            GUI.Label(areaTitulo, "Fase completa!", titulo);
+            GUI.Label(areaTexto, textoFim, texto);
+
+            string nomeBotao = TemProximaFase() ? "Próxima fase" : "Voltar ao início";
+
+            if (GUI.Button(areaBotao, nomeBotao, botao))
+            {
+                ProximaFase();
+            }
+        }
         else
         {
-            // Durante o jogo: mostra as vidas no canto
+            // Durante o jogo: vidas no canto de cima e nome da fase
             GUIStyle hud = new GUIStyle(GUI.skin.label);
-            hud.fontSize = (int)(altura / 20);
+            hud.fontSize = (int)(altura / 22);
             hud.normal.textColor = Color.white;
 
             GUI.Label(new Rect(20, 10, largura * 0.4f, altura * 0.1f), "Vidas: " + vidas, hud);
+
+            hud.alignment = TextAnchor.UpperRight;
+            GUI.Label(new Rect(largura * 0.5f - 20, 10, largura * 0.5f, altura * 0.1f), tituloFase, hud);
         }
     }
 
@@ -250,7 +369,7 @@ public class GameManager : MonoBehaviour
     // Pinta um fundo preto transparente por cima do jogo
     void EscurecerTela(float largura, float altura)
     {
-        GUI.color = new Color(0, 0, 0, 0.75f);
+        GUI.color = new Color(0, 0, 0, 0.8f);
         GUI.DrawTexture(new Rect(0, 0, largura, altura), Texture2D.whiteTexture);
         GUI.color = Color.white;
     }

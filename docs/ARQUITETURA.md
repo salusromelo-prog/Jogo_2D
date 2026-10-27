@@ -18,11 +18,20 @@ ele por métodos `static` (`GameManager.PerderVida()` e `GameManager.Tocar("nome
  GameManager ──► vidas, respawn, Game Over, menu (OnGUI), música e sons (Resources/Sons)
 ```
 
-## Cena `jogo`
+## Cena `Fase1`
 
-`Main Camera` (fixa), `Background`, `Grid/GroundTilemap` (tag Ground), `Floors/Statics` (plataformas `Floor`, tag
-Ground), `Enemys/Enemy` e `Enemy (1)`, `Player/Sprite` (o player de verdade, com tag Player), espinhos e o objeto
-`GameManager`.
+A cena tem pouca coisa: `Main Camera`, `Player/Sprite` (o player de verdade, com tag Player), `Enemy` (desligado,
+serve só de modelo para as cópias), `GameManager` e `LevelBuilder`. Todo o resto (chão, espinhos, portão, lanternas,
+inimigos, fundo) é criado quando o jogo começa, a partir do texto em `Assets/Resources/Fases/fase1.txt`.
+
+```
+ fase1.txt ──► LevelBuilder ──► Tilemap (Ground) + espinhos + portão + lanternas
+                   │        ├──► cópias do inimigo modelo, player no ponto P
+                   │        ├──► fundo com Parallax (céu, montanhas, vila)
+                   │        ├──► CameraFollow na câmera
+                   │        └──► textos da fase ──► GameManager (história / fim)
+ Portao ──► GameManager.FimDaFase() ──► próxima cena do Build Settings
+```
 
 ## Decisões e convenções
 
@@ -38,6 +47,7 @@ Ground), `Enemys/Enemy` e `Enemy (1)`, `Player/Sprite` (o player de verdade, com
 - Bala e inimigo andam por `Translate` e atravessam paredes.
 - Os frames do inimigo têm recortes de tamanhos diferentes, então o sprite balança um pouco.
 - Nomes de classe diferentes dos arquivos (`PlayerTiro` em `PlayerAtack.cs`, `Bala` em `ammunition.cs`, `Espinho` em `Espinhos.cs`).
-- Câmera fixa: se a fase ficar maior que a tela, será preciso uma câmera que siga o player.
+- A Fase 1 foi validada só por simulação de física em Python, não jogando no Unity. Ajustar vãos e alturas jogando.
+- Os 3 frames de arte do inimigo ainda têm tamanhos diferentes.
 - Assets com nomes genéricos (`Imagem do ChatGPT …`), controllers duplicados da shuriken e PNGs grandes.
 - O projeto está dentro do OneDrive, que pode sincronizar a pasta `Library/` e causar conflitos.

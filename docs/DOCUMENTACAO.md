@@ -8,6 +8,9 @@
 | [ARQUITETURA.md](ARQUITETURA.md) | Como as peças se conectam, tags, física, animação, problemas conhecidos |
 | [ROADMAP.md](ROADMAP.md) | Próximos passos priorizados |
 
+> Atualização: o jogo agora tem uma trilogia de fases (veja [HISTORIA.md](HISTORIA.md)). Só a Fase 1 está pronta.
+> As fases são montadas por um arquivo de texto. A seção "Como editar o mapa" explica como.
+
 ## Visão geral
 
 Plataforma 2D de ação em visão lateral. Um personagem (ninja) anda e pula por plataformas, atira shurikens
@@ -17,13 +20,40 @@ em Unity.
 - **Engine:** Unity 6000.1.4f1 (Unity 6)
 - **Render pipeline:** URP 17.1 com Renderer 2D
 - **Entrada:** Input System 1.14 instalado, projeto configurado com `activeInputHandler: 2` (aceita os dois sistemas). Os scripts usam a API antiga (`Input.GetAxis`, `Input.GetKeyDown`).
-- **Cena única:** `Assets/Scenes/jogo.unity` (build index 0)
+- **Cenas:** `Assets/Scenes/Fase1.unity` (build index 0). A Fase 2 e a Fase 3 serão novas cenas na lista do Build Settings.
 
 ## Como rodar
 
 1. Instale o Unity Hub e o editor **6000.1.4f1**.
 2. Clone o repositório e adicione a pasta no Unity Hub (Add project from disk).
-3. Abra `Assets/Scenes/jogo.unity` e aperte Play.
+3. Abra `Assets/Scenes/Fase1.unity` e aperte Play.
+
+## Como editar o mapa
+
+O mapa da Fase 1 é o arquivo de texto `Assets/Resources/Fases/fase1.txt`. Cada letra vira uma parte da fase quando
+o jogo começa (o script `LevelBuilder` lê o arquivo). Dá para editar no Bloco de Notas, salvar e apertar Play.
+Uma imagem do mapa inteiro está em [fase1_mapa.png](fase1_mapa.png).
+
+| Letra | O que vira |
+|---|---|
+| `#` | bloco de pedra (a borda vermelha aparece sozinha quando não há pedra em cima) |
+| `T` | plataforma de telhado |
+| `^` | espinhos |
+| `P` | onde o player começa |
+| `E` | inimigo |
+| `G` | portão do fim da fase |
+| `L` | lanterna (só enfeite) |
+| `.` | vazio |
+
+As linhas que começam com `@` não são mapa: `@titulo`, `@historia` e `@fim` são os textos que aparecem nas telas.
+A linha de baixo do arquivo é a altura 0. Para pular um vão com folga, use vãos de até 3 blocos e subidas de até 2.
+
+Para criar uma nova fase: copie `fase1.txt` para `fase2.txt`, mude o desenho, duplique a cena `Fase1`, troque o
+campo "Arquivo Mapa" do objeto `LevelBuilder` para `Fases/fase2` e coloque a cena nova no Build Settings.
+
+A arte dos blocos e do fundo está em `Assets/Resources/Arte/` (imagens simples feitas por código, em pixel art noturna
+azul-marinho e verde escuro, com luz quente só nas lanternas). O fundo tem 4 camadas: céu, montanhas, bambu e vila. Dá para trocar qualquer imagem mantendo o
+mesmo nome.
 
 ## Controles
 
@@ -53,7 +83,8 @@ Assets/
 │  ├─ Enemy/        Enemy_art.png, Run/ (3 frames + Enemy.controller + enemy_run.anim)
 │  └─ Shuriken/     8 frames + Shuriken.controller + Shuriken_Spin.anim
 ├─ PreFabs/         Shuriken.prefab, Triangle (1).prefab (espinho)
-├─ Scenes/          jogo.unity
+├─ Resources/       Arte/ (tiles e fundos), Fases/ (mapas em texto), Sons/
+├─ Scenes/          Fase1.unity
 ├─ Scripts/         Player.cs, PlayerAtack.cs, Enemy.cs, ammunition.cs, Espinhos.cs
 ├─ Settings/        URP / Renderer2D / template de cena
 ├─ InputSystem_Actions.inputactions   (padrão do template, ainda não usado)
@@ -69,7 +100,11 @@ Assets/
 | `ammunition.cs` | `Bala` | Shuriken e bala do inimigo | Anda em linha reta, some em 3 s, mata `Enemy` ao encostar (trigger) |
 | `Enemy.cs` | `Enemy` | Enemy | Patrulha, vira, atira no player e dispara a animação de ataque |
 | `Espinhos.cs` | `Espinho` | Espinho, inimigo, bala inimiga | Ao encostar no `Player`, chama `GameManager.PerderVida()` |
-| `GameManager.cs` | `GameManager` | Objeto vazio "GameManager" | Menu, vidas, Game Over, respawn, queda do mapa, música e sons |
+| `GameManager.cs` | `GameManager` | Objeto vazio "GameManager" | Menu, história da fase, vidas, Game Over, fim de fase, respawn, queda do mapa, música e sons |
+| `LevelBuilder.cs` | `LevelBuilder` | Objeto vazio "LevelBuilder" | Lê o mapa de texto e cria chão (Tilemap), espinhos, portão, lanternas, inimigos, fundo e câmera |
+| `CameraFollow.cs` | `CameraFollow` | Câmera (adicionado pelo LevelBuilder) | Segue o player sem sair do mapa |
+| `Parallax.cs` | `Parallax` | Camadas do fundo | Faz o céu, as montanhas e a vila andarem em velocidades diferentes |
+| `Portao.cs` | `Portao` | Portão do fim da fase | Ao receber o Player, termina a fase |
 
 ### Parâmetros expostos no Inspector
 

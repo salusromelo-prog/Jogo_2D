@@ -6,8 +6,8 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/jogo.unity
-    guid: 9153f1af29f75e8418e4c3e18f1d34cd
+    path: Assets/Scenes/Fase1.unity
+    guid: 6d2f91c4a7e84b3f90a1d5c8e3b72f16
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
   m_UseUCBPForAssetBundles: 0
