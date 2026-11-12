@@ -8,6 +8,7 @@ TagManager:
   - Dano
   - Enemy
   - Wall
+  - PassarFase
   layers:
   - Default
   - TransparentFX

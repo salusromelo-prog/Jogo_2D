@@ -20,7 +20,7 @@ public class Bala : MonoBehaviour
 
     void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.CompareTag("Enemy"))
+        if (collision.CompareTag("Dano"))
         {
             Destroy(collision.gameObject);
             Destroy(gameObject);

@@ -1,3 +1,4 @@
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -18,6 +19,7 @@ public class Player : MonoBehaviour
 
     Animator animator;
     private SpriteRenderer spriteRenderer;
+    public MenuScene menu;
 
     void Start()
     {
@@ -99,6 +101,16 @@ public class Player : MonoBehaviour
                 wallDirection = -1;
             }
         }
+
+        if (collision.gameObject.CompareTag("Dano"))
+        {
+            menu.MostrarGameOver();
+        }
+
+        if (collision.gameObject.CompareTag("PassarFase"))
+        {
+            SceneManager.LoadScene("Fase2");
+        }
     }
 
     void OnCollisionStay2D(Collision2D collision)
@@ -133,4 +145,5 @@ public class Player : MonoBehaviour
             wallDirection = 0;
         }
     }
+
 }
