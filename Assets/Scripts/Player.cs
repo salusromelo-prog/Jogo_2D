@@ -111,6 +111,10 @@ public class Player : MonoBehaviour
         {
             SceneManager.LoadScene("Fase2");
         }
+        if (collision.gameObject.CompareTag("PassarFase2"))
+        {
+            SceneManager.LoadScene("Win");
+        }
     }
 
     void OnCollisionStay2D(Collision2D collision)

@@ -9,6 +9,7 @@ TagManager:
   - Enemy
   - Wall
   - PassarFase
+  - PassarFase2
   layers:
   - Default
   - TransparentFX
