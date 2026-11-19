@@ -8,6 +8,7 @@ public class Espinho : MonoBehaviour
 
         
     {
+        //se encostar no player mostra o game over
         if (collision.gameObject.CompareTag("Player"))
         {
             menu.MostrarGameOver();

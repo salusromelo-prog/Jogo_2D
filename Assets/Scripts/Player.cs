@@ -77,11 +77,12 @@ public class Player : MonoBehaviour
 
     void OnCollisionEnter2D(Collision2D collision)
     {
+        //Se o Player encostar em um objeto com tag Ground ele pode pular
         if (collision.gameObject.CompareTag("Ground"))
         {
             isGraunded = true;
         }
-
+        //Se o Player encostar em um objeto com tag Wall ele pode pular
         if (collision.gameObject.CompareTag("Wall"))
         {
             isOnWall = true;
@@ -102,15 +103,17 @@ public class Player : MonoBehaviour
             }
         }
 
+        //Se encostar em um objeto com tag Dano mostra game over
         if (collision.gameObject.CompareTag("Dano"))
         {
             menu.MostrarGameOver();
         }
-
+        //Se encostar em um objeto com tag PassarFase vai carregar a proxima fase
         if (collision.gameObject.CompareTag("PassarFase"))
         {
             SceneManager.LoadScene("Fase2");
         }
+        //Se encostar em um objeto com tag PassarFase2 vai carregar a proxima fase
         if (collision.gameObject.CompareTag("PassarFase2"))
         {
             SceneManager.LoadScene("Win");
@@ -119,6 +122,8 @@ public class Player : MonoBehaviour
 
     void OnCollisionStay2D(Collision2D collision)
     {
+
+        //Esse condição encadeada vai detectar se o player esta encostado na parede, e após isso ele vai calcular a direção do WallJump
         if (collision.gameObject.CompareTag("Wall"))
         {
             isOnWall = true;
@@ -138,11 +143,12 @@ public class Player : MonoBehaviour
 
     void OnCollisionExit2D(Collision2D collision)
     {
+        //Detecta se o player NÃO está encostado no chão
         if (collision.gameObject.CompareTag("Ground"))
         {
             isGraunded = false;
         }
-
+        //detecta se está encostado não está encostado na parede 
         if (collision.gameObject.CompareTag("Wall"))
         {
             isOnWall = false;

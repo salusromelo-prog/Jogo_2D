@@ -18,6 +18,7 @@ public class PassarFase2 : MonoBehaviour
 
     public void Passarfase()
     {
+        //vai carregar a cena de vitoria
         SceneManager.LoadScene("Win");
     }
 }

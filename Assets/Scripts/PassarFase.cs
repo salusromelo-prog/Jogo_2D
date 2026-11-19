@@ -18,6 +18,7 @@ public class PassarFase : MonoBehaviour
 
     public void Passarfase()
     {
+        //vai carregar a fase2 
         SceneManager.LoadScene("Fase2");
     }
 }
